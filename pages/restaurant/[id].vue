@@ -1,195 +1,258 @@
 <template>
   <div v-if="restaurant" class="min-h-screen bg-white">
-    <!-- Header with overlay -->
-    <div class="relative h-64 md:h-80">
-      <img :src="restaurant.image" :alt="restaurant.name" class="w-full h-full object-cover rounded-b-3xl" />
-      <div class="absolute inset-0 bg-black bg-opacity-40 rounded-b-3xl"></div>
-      <div class="absolute inset-0 flex items-end">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 text-white w-full">
-          <p class="text-sm text-white mb-1">{{ greeting }}</p>
-          <h1 class="text-4xl md:text-5xl font-extrabold mb-2 drop-shadow-lg">{{ restaurant.name }}</h1>
-          <div class="flex flex-wrap items-center gap-4 text-sm opacity-90">
-            <div class="flex items-center gap-1">
-              <Icon name="heroicons:star" class="w-5 h-5 text-yellow-400" />
-              <span>{{ restaurant.rating }} ({{ restaurant.reviewCount }} reviews)</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <Icon name="heroicons:clock" class="w-5 h-5 text-white" />
-              <span>{{ restaurant.deliveryTime }} min</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <Icon name="heroicons:banknotes" class="w-5 h-5 text-white" />
-              <span class="text-white">₹{{ restaurant.deliveryFee }} delivery</span>
-            </div>
-            <span class="bg-red-600 text-white px-2 py-1 rounded text-sm font-semibold">{{ restaurant.cuisine }}</span>
-          </div>
-        </div>
+    <!-- Banner -->
+    <div
+      class="h-64 bg-cover bg-center flex items-end rounded-b-2xl shadow"
+      :style="{ backgroundImage: `url('${restaurant.image}')` }"
+    >
+      <div class="bg-black/60 w-full p-5 text-white rounded-b-2xl backdrop-blur-sm">
+        <h1 class="text-3xl font-extrabold tracking-tight">{{ restaurant.name }}</h1>
+        <p class="text-sm opacity-90 mt-1">
+          {{ restaurant.cuisine }} • {{ restaurant.deliveryTime }} mins
+        </p>
+        <p class="text-sm opacity-80">
+          ⭐ {{ restaurant.rating }} ({{ restaurant.reviewCount }} reviews)
+        </p>
       </div>
     </div>
 
-    <!-- Content Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div class="flex flex-col lg:flex-row gap-8">
-        <!-- Left: Menu Content -->
-        <div class="flex-1">
-          <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-            <!-- Search -->
-            <input v-model="searchQuery" type="text" placeholder="Search dishes..."
-              class="w-full px-4 py-2 border border-red-500 rounded-lg mb-6 focus:ring-red-500 focus:border-red-500 text-sm bg-white placeholder-gray-400 text-gray-900" />
+    <!-- Notification -->
+    <transition name="slide-fade">
+      <div
+        v-if="showNotification"
+        class="fixed top-4 right-4 z-50 max-w-sm w-full bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg"
+      >
+        <p class="text-sm font-semibold">
+          ✅ <span class="text-green-800 font-bold">{{ lastAddedItemName }}</span> has been added to the cart
+        </p>
+      </div>
+    </transition>
 
-            <!-- Tabs for Categories -->
-            <div class="sticky top-20 z-10 bg-white py-2">
-              <div class="flex space-x-1 bg-white p-1 rounded-lg mb-6">
-                <button v-for="category in menuCategories" :key="category" @click="activeCategory = category" :class="[
-                  'flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all border border-red-200',
-                  activeCategory === category
-                    ? 'bg-red-500 text-white shadow-md'
-                    : 'text-red-600 hover:text-red-800 hover:bg-red-50'
-                ]">
-                  {{ category }}
-                </button>
-              </div>
-            </div>
+    <!-- Menu Content -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="mb-8">
+        <h2 class="text-3xl font-bold mb-2 text-gray-800 tracking-tight">Explore the Menu</h2>
+        <p class="text-sm text-gray-500">Handpicked dishes just for you ✨</p>
+      </div>
 
-            <!-- Menu Items -->
-            <div class="grid gap-5 md:grid-cols-2">
-              <MenuItemCard
-                v-for="item in filteredMenuItems"
-                :key="item.id"
-                :item="item"
-                :restaurant-id="restaurant.id"
-              />
-            </div>
+      <div v-if="loading" class="text-center py-20">
+        <span class="text-gray-500">Fetching deliciousness...</span>
+      </div>
 
-            <!-- Review Section (Moved Here) -->
-            <div class="">
-              <div class="bg-white ">
-                <ReviewSection />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: Sidebar -->
-        <div class="lg:w-80 space-y-6">
-          <div class="sticky top-24 space-y-6">
-            <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
-              <h3 class="font-semibold text-gray-900 mb-4">Restaurant Info</h3>
-              <div class="space-y-3 text-sm text-gray-600">
-                <div class="flex items-center gap-2">
-                  <Icon name="heroicons:map-pin" class="w-4 h-4 text-gray-500" />
-                  <span>123 Main Street, City</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <Icon name="heroicons:phone" class="w-4 h-4 text-gray-500" />
-                  <span>(555) 123-4567</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <Icon name="heroicons:clock" class="w-4 h-4 text-gray-500" />
-                  <span>Open until 10:00 PM</span>
-                </div>
-              </div>
+      <div v-else class="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div
+          v-for="item in menuItems"
+          :key="item.id"
+          class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300 p-4 flex flex-col justify-between group"
+        >
+          <div class="flex gap-4">
+            <img
+              :src="item.image"
+              alt="food"
+              class="w-24 h-24 object-cover rounded-lg bg-gray-100 border group-hover:scale-105 transition-transform"
+            />
+            <div class="flex-1">
+              <h3 class="font-semibold text-lg text-gray-800">{{ item.name }}</h3>
+              <p class="text-gray-500 text-sm mt-1">
+                A tasty treat from <strong>{{ restaurant.name }}</strong>.
+              </p>
+              <p class="text-red-600 font-bold mt-2 text-md">₹{{ item.price }}</p>
             </div>
           </div>
+          <button
+            class="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-md self-start transition"
+            @click="handleAddToCart(item)"
+          >
+            Add to Cart
+          </button>
         </div>
       </div>
-    </div>
-
-    <!-- Floating Cart Button (Mobile only) -->
-    <div class="fixed bottom-4 left-0 right-0 px-4 lg:hidden z-50">
-      <NuxtLink to="/cart"
-        class="block bg-red-500 text-white text-center py-3 rounded-full shadow-md text-sm font-semibold">
-        View Cart (₹{{ cartStore.total.toFixed(2) }})
-      </NuxtLink>
     </div>
   </div>
 
-  <!-- Loader -->
-  <div v-else class="min-h-screen bg-white flex items-center justify-center">
+  <!-- Loading fallback -->
+  <div v-else class="min-h-screen flex items-center justify-center bg-white">
     <div class="text-center">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-      <p class="text-gray-600">Loading restaurant...</p>
+      <div class="animate-spin rounded-full h-10 w-10 border-4 border-red-500 border-t-transparent mx-auto mb-4" />
+      <p class="text-gray-600">Loading restaurant info...</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useCartStore } from '~/stores/cart'
-import ReviewSection from '~/components/ReviewSection.vue'
+import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useCartStore } from '@/stores/cart'
+import axios from 'axios'
 
 const route = useRoute()
 const cartStore = useCartStore()
+
 const restaurantId = parseInt(route.params.id)
-
 const restaurant = ref(null)
-const searchQuery = ref('')
-const activeCategory = ref('Popular')
+const menuItems = ref([])
+const loading = ref(false)
+const showNotification = ref(false)
+const lastAddedItemName = ref('')
 
-const restaurants = {
+// Static Restaurant Data
+const allRestaurants = {
   1: {
     id: 1,
-    name: "Mario's Pizza Palace",
-    cuisine: 'Italian',
-    rating: 4.8,
-    reviewCount: 1200,
-    deliveryTime: '25-35',
+    name: 'Funky Panda',
+    cuisine: 'Asian Fusion',
+    rating: 4.7,
+    reviewCount: 1100,
+    deliveryTime: 20,
     deliveryFee: 30,
-    image: 'https://images.pexels.com/photos/1566837/pexels-photo-1566837.jpeg?auto=compress&cs=tinysrgb&w=1200'
+    image: 'https://cdn.streetstylestore.com/2/9/2/4/3/5/292435-funky_food.webp'
+  },
+  2: {
+    id: 2,
+    name: 'Bollywood Canteen',
+    cuisine: 'Indian Street Food',
+    rating: 4.6,
+    reviewCount: 950,
+    deliveryTime: 25,
+    deliveryFee: 25,
+    image: 'https://images.pexels.com/photos/3756523/pexels-photo-3756523.jpeg'
   }
 }
 
-const menuItems = {
-  1: [
-    {
-      id: 1,
-      name: 'Margherita Pizza',
-      description: 'Fresh mozzarella, tomato sauce, basil, and olive oil',
-      price: 169,
-      category: 'Popular',
-      image: 'https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=400',
-      restaurantId: 1
-    }
-  ]
-}
-
-const greeting = computed(() => {
-  const hr = new Date().getHours()
-  if (hr < 12) return 'Good morning 👋'
-  else if (hr < 18) return 'Good afternoon ⛅️'
-  else return 'Good evening 🌙'
-})
-
-const currentMenuItems = computed(() => menuItems[restaurantId] || [])
-const menuCategories = computed(() => {
-  const categories = [...new Set(currentMenuItems.value.map(item => item.category))]
-  return categories.length > 0 ? categories : ['Popular']
-})
-
-const filteredMenuItems = computed(() => {
-  return currentMenuItems.value.filter(
-    item =>
-      item.category === activeCategory.value &&
-      item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
-
-onMounted(() => {
-  restaurant.value = restaurants[restaurantId]
-  if (!restaurant.value) {
-    throw createError({ statusCode: 404, statusMessage: 'Restaurant not found' })
+onMounted(async () => {
+  restaurant.value = allRestaurants[restaurantId] || null
+  if (restaurantId === 1) {
+    await fetchFunkyPandaMenu()
+  } else if (restaurantId === 2) {
+    await loadBollywoodCanteenMenu()
   }
 })
 
-useHead(() => ({
-  title: restaurant.value ? `${restaurant.value.name} - ScootyLoot` : 'Restaurant - ScootyLoot',
-  meta: [
+async function fetchFunkyPandaMenu() {
+  loading.value = true
+  try {
+    const { data } = await axios.get(
+      'https://api.streetstylestore.com/collections/products/documents/search',
+      {
+        params: {
+          q: '*',
+          filter_by: 'categories:=893',
+          sort_by: 'date_updated_unix:desc',
+          per_page: 50,
+          page: 1,
+          'x-typesense-api-key': 'Bm23NaocNyDb2qWiT9Mpn4qXdSmq7bqdoLzY6espTB3MC6Rx'
+        }
+      }
+    )
+
+    menuItems.value = data.hits.map((hit) => {
+      const doc = hit.document
+      const parsed = JSON.parse(doc.product_data || '{}')?.['0'] || {}
+      const images = JSON.parse(doc.product_data || '{}')?.images || []
+      const image =
+        doc.img || doc.image || images?.[0]?.img || doc.alternate_img || 'https://via.placeholder.com/100'
+
+      const price =
+        parseFloat(parsed.selling_price) > 0
+          ? parseFloat(parsed.selling_price)
+          : parseFloat(doc.selling_price) > 0
+            ? parseFloat(doc.selling_price)
+            : 0
+
+      return {
+        id: doc.id,
+        name: doc.name,
+        price,
+        image,
+        restaurantId: restaurantId
+      }
+    })
+  } catch (e) {
+    console.error('Menu fetch error', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadBollywoodCanteenMenu() {
+  loading.value = true
+  menuItems.value = [
     {
-      name: 'description',
-      content: restaurant.value
-        ? `Order from ${restaurant.value.name}. ${restaurant.value.cuisine} cuisine.`
-        : 'Order food online'
+      id: 201,
+      name: 'Paneer Momos',
+      price: 120,
+      image: 'https://i.pinimg.com/736x/73/d2/fe/73d2fed4697d267c6584bcecbf41a326.jpg',
+      restaurantId: restaurantId
+    },
+    {
+      id: 202,
+      name: 'Veg Momos',
+      price: 100,
+      image: 'https://i.pinimg.com/736x/fe/c3/b3/fec3b34d5edb094554ed761c0d6f9d17.jpg',
+      restaurantId: restaurantId
+    },
+    {
+      id: 203,
+      name: 'Cheese Corn Momos',
+      price: 130,
+      image: 'https://i.pinimg.com/736x/85/43/cd/8543cd6668a18a97e0d7181046b31c7c.jpg',
+      restaurantId: restaurantId
+    },
+    {
+      id: 204,
+      name: 'Creamy Cheese Momos',
+      price: 140,
+      image: 'https://i.pinimg.com/736x/51/08/c4/5108c431a8bfd00c32da4bff45b4427c.jpg',
+      restaurantId: restaurantId
+    },
+    {
+      id: 205,
+      name: 'Soya Chaap Bao',
+      price: 160,
+      image: 'https://i.pinimg.com/736x/2e/8e/e6/2e8ee6fb76cdffd4d07c64bd75518fd3.jpg',
+      restaurantId: restaurantId
+    },
+    {
+      id: 206,
+      name: 'Vegetable Bao',
+      price: 150,
+      image: 'https://i.pinimg.com/736x/5e/cf/51/5ecf5180bdf90b9d4216879c18e9c41c.jpg',
+      restaurantId: restaurantId
+    },
+    {
+      id: 207,
+      name: 'Green Kebab Bao',
+      price: 170,
+      image: 'https://i.pinimg.com/736x/9e/ba/6b/9eba6bab904c7b546fa610956363c674.jpg',
+      restaurantId: restaurantId
     }
   ]
-}))
+  loading.value = false
+}
+
+function handleAddToCart(item) {
+  cartStore.addItem(item)
+  lastAddedItemName.value = item.name
+  showNotification.value = true
+  setTimeout(() => {
+    showNotification.value = false
+  }, 2000)
+}
 </script>
+
+<style scoped>
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.4s ease;
+}
+
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+</style>

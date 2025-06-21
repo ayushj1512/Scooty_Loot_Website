@@ -11,7 +11,7 @@ import WhatToEat from '../components/WhatToEat.vue';
 <template>
   <section class="p-0">
     <HeroCarousel />
-    <WhatToEat />
+    <!-- <WhatToEat /> -->
     <!-- <BreakfastGrid />
     <QuickNeeds /> -->
     <FeaturedRestaurants />

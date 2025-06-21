@@ -18,10 +18,7 @@
         </div>
 
         <!-- Explore link -->
-        <NuxtLink to="/restaurants"
-          class="text-sm font-semibold text-black hover:text-red-600 transition whitespace-nowrap hidden sm:inline">
-          Explore
-        </NuxtLink>
+      
 
         <!-- Cart -->
         <button @click="cartStore.openCart()"

@@ -36,11 +36,15 @@
               :alt="rest.name"
               class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
-            <span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-semibold px-2 py-[2px] rounded-full shadow">
+            <span
+              class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-semibold px-2 py-[2px] rounded-full shadow"
+            >
               Open Now
             </span>
-            <span v-if="rest.deliveryTime <= 25"
-              class="absolute top-2 right-2 bg-white text-red-600 text-[10px] font-semibold px-2 py-[2px] rounded-full border border-red-500">
+            <span
+              v-if="rest.deliveryTime <= 25"
+              class="absolute top-2 right-2 bg-white text-red-600 text-[10px] font-semibold px-2 py-[2px] rounded-full border border-red-500"
+            >
               Fast Delivery
             </span>
           </div>
@@ -65,7 +69,7 @@
   </section>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -73,67 +77,27 @@ const router = useRouter()
 
 const restaurants = ref([
   {
-    id: 'fp',
+    id: 1,
     name: 'Funky Panda',
-    cuisine: 'Asian Fusion',
+    cuisine: 'Deserts', // ✅ Changed from Asian Fusion to Deserts
     deliveryTime: 20,
-    image: 'https://cdn.streetstylestore.com/2/9/2/4/3/5/292435-funky_food.webp',
+    image: '/fklogo.png', // ✅ From public folder
     rating: '4.7',
   },
   {
-    id: 'bc',
+    id: 2,
     name: 'Bollywood Canteen',
     cuisine: 'Indian Street Food',
     deliveryTime: 25,
-    image: 'https://images.pexels.com/photos/3756523/pexels-photo-3756523.jpeg',
+    image: '/BollywoodCanteenLogo.png', // ✅ From public folder
     rating: '4.6',
-  },
-  {
-    id: '1',
-    name: 'Pizza Palace',
-    cuisine: 'Italian',
-    deliveryTime: 30,
-    image: 'https://images.pexels.com/photos/2619967/pexels-photo-2619967.jpeg',
-    rating: '4.4',
-  },
-  {
-    id: '2',
-    name: 'Burger Hub',
-    cuisine: 'American',
-    deliveryTime: 25,
-    image: 'https://images.pexels.com/photos/1639562/pexels-photo-1639562.jpeg',
-    rating: '4.3',
-  },
-  {
-    id: '3',
-    name: 'Sushi World',
-    cuisine: 'Japanese',
-    deliveryTime: 40,
-    image: 'https://images.pexels.com/photos/357756/pexels-photo-357756.jpeg',
-    rating: '4.8',
-  },
-  {
-    id: '4',
-    name: 'Taco Town',
-    cuisine: 'Mexican',
-    deliveryTime: 35,
-    image: 'https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg',
-    rating: '4.2',
-  },
-  {
-    id: '5',
-    name: 'Sweet Tooth',
-    cuisine: 'Desserts',
-    deliveryTime: 20,
-    image: 'https://images.pexels.com/photos/704569/pexels-photo-704569.jpeg',
-    rating: '4.9',
-  },
+  }
 ])
 
-const filters = ['All', 'Indian Street Food', 'Desserts', 'Fast Delivery']
+const filters = ['All', 'Indian Street Food', 'Deserts', 'Fast Delivery']
 const selectedFilter = ref('All')
 
-const applyFilter = (filter: string) => {
+const applyFilter = (filter) => {
   selectedFilter.value = filter
 }
 
@@ -145,8 +109,8 @@ const filteredRestaurants = computed(() => {
   return restaurants.value.filter((rest) => rest.cuisine === selectedFilter.value)
 })
 
-const openRestaurant = (rest: { id: string }) => {
-  router.push({ name: 'restaurant-menu', params: { id: rest.id } })
+const openRestaurant = (rest) => {
+  router.push(`/restaurant/${rest.id}`)
 }
 </script>
 
@@ -154,6 +118,7 @@ const openRestaurant = (rest: { id: string }) => {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
