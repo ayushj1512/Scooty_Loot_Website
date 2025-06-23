@@ -6,7 +6,9 @@
       :style="{ backgroundImage: `url('${restaurant.image}')` }"
     >
       <div class="bg-black/60 w-full p-5 text-white rounded-b-2xl backdrop-blur-sm">
-        <h1 class="text-3xl font-extrabold tracking-tight">{{ restaurant.name }}</h1>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          {{ restaurant.name }}
+        </h1>
         <p class="text-sm opacity-90 mt-1">
           {{ restaurant.cuisine }} • {{ restaurant.deliveryTime }} mins
         </p>
@@ -23,44 +25,67 @@
         class="fixed top-4 right-4 z-50 max-w-sm w-full bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg"
       >
         <p class="text-sm font-semibold">
-          ✅ <span class="text-green-800 font-bold">{{ lastAddedItemName }}</span> has been added to the cart
+          ✅
+          <span class="text-green-800 font-bold">{{ lastAddedItemName }}</span>
+          has been added to the cart
         </p>
       </div>
     </transition>
 
-    <!-- Menu Content -->
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div class="mb-8">
-        <h2 class="text-3xl font-bold mb-2 text-gray-800 tracking-tight">Explore the Menu</h2>
-        <p class="text-sm text-gray-500">Handpicked dishes just for you ✨</p>
+    <!-- Content -->
+    <div class="w-full max-w-6xl mx-auto px-4 sm:px-5 lg:px-4 py-6 space-y-6">
+      <!-- Review Section -->
+      <div class="mb-2">
+        <ReviewSection :restaurant="restaurant" />
       </div>
 
-      <div v-if="loading" class="text-center py-20">
+      <!-- Menu Header -->
+      <div class="mt-2 mb-2 text-center md:text-left">
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">
+          Explore the Menu
+        </h2>
+        <p class="text-sm text-gray-500 mt-0.5">
+          Handpicked dishes just for you ✨
+        </p>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="loading" class="text-center py-10">
         <span class="text-gray-500">Fetching deliciousness...</span>
       </div>
 
-      <div v-else class="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Menu Grid -->
+      <div
+        v-else
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"
+      >
         <div
           v-for="item in menuItems"
           :key="item.id"
-          class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300 p-4 flex flex-col justify-between group"
+          class="bg-white rounded-xl border border-gray-100 shadow hover:shadow-md transition-all p-4 group"
         >
-          <div class="flex gap-4">
+          <div class="flex gap-3 items-center">
             <img
               :src="item.image"
               alt="food"
-              class="w-24 h-24 object-cover rounded-lg bg-gray-100 border group-hover:scale-105 transition-transform"
+              class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg bg-gray-100 border transition-transform duration-300 group-hover:scale-105"
             />
             <div class="flex-1">
-              <h3 class="font-semibold text-lg text-gray-800">{{ item.name }}</h3>
-              <p class="text-gray-500 text-sm mt-1">
-                A tasty treat from <strong>{{ restaurant.name }}</strong>.
+              <h3
+                class="text-base sm:text-lg font-semibold text-gray-800 leading-snug"
+              >
+                {{ item.name }}
+              </h3>
+              <p class="text-xs text-gray-500 mt-1">
+                From <strong>{{ restaurant.name }}</strong>
               </p>
-              <p class="text-red-600 font-bold mt-2 text-md">₹{{ item.price }}</p>
+              <p class="text-red-600 font-bold mt-2 text-sm">
+                ₹{{ item.price }}
+              </p>
             </div>
           </div>
           <button
-            class="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-md self-start transition"
+            class="mt-4 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm rounded-md transition w-full"
             @click="handleAddToCart(item)"
           >
             Add to Cart
@@ -70,20 +95,26 @@
     </div>
   </div>
 
-  <!-- Loading fallback -->
+  <!-- Fallback Loader -->
   <div v-else class="min-h-screen flex items-center justify-center bg-white">
     <div class="text-center">
-      <div class="animate-spin rounded-full h-10 w-10 border-4 border-red-500 border-t-transparent mx-auto mb-4" />
+      <div
+        class="animate-spin rounded-full h-10 w-10 border-4 border-red-500 border-t-transparent mx-auto mb-4"
+      />
       <p class="text-gray-600">Loading restaurant info...</p>
     </div>
   </div>
 </template>
+
+
+
 
 <script setup>
 import { useRoute } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import axios from 'axios'
+import ReviewSection from '@/components/ReviewSection.vue'
 
 const route = useRoute()
 const cartStore = useCartStore()
@@ -115,7 +146,7 @@ const allRestaurants = {
     reviewCount: 950,
     deliveryTime: 25,
     deliveryFee: 25,
-    image: 'https://images.pexels.com/photos/3756523/pexels-photo-3756523.jpeg'
+    image: 'https://i.pinimg.com/736x/e7/f1/53/e7f1533b82336ca872abca3211d2e4b4.jpg'
   }
 }
 

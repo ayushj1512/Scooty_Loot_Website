@@ -1,210 +1,244 @@
 <template>
-    <section class="mt-8 bg-white p-4 rounded-xl">
-        <!-- Header -->
-        <div class="mb-6 text-center">
-            <h2 class="text-xl font-bold text-gray-900">Customer & Expert Reviews</h2>
-            <p class="text-xs text-gray-600">96% of users loved this restaurant 💖</p>
+  <div class="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+      <!-- LEFT COLUMN -->
+      <div class="flex flex-col space-y-10">
+        <!-- Title -->
+        <div class="space-y-1">
+          <h2 class="text-3xl font-extrabold text-gray-800">Ratings Overview</h2>
+          <p class="text-sm text-gray-500">Based on {{ totalRatings }} total reviews</p>
         </div>
 
-        <!-- Grid: Ratings + Reviews -->
-        <div class="grid md:grid-cols-2 items-center">
-            <!-- LEFT: Rating Meter & Breakdown -->
-            <div class="flex flex-col items-center md:items-start space-y-5 min-h-[420px]">
-                <!-- Meter -->
-                <div ref="meterRef" class="relative w-36 h-20">
-                    <div class="absolute w-full h-full overflow-hidden rotate-180">
-                        <div class="w-full h-full rounded-b-full transition-all duration-[2000ms]"
-                            :style="{ background: `conic-gradient(#facc15 ${animatedPercent * 1.8}deg, #e5e7eb 0deg)` }">
-                        </div>
-                    </div>
-                    <div class="absolute inset-0 flex items-end justify-center pb-2">
-                        <p class="text-lg font-bold text-gray-800">{{ averageRating.toFixed(1) }} / 5</p>
-                    </div>
-                </div>
-
-                <!-- Stars -->
-                <div class="text-center md:text-left">
-                    <div class="flex justify-center md:justify-start text-yellow-400">
-                        <Icon name="heroicons:star-solid" class="w-5 h-5" v-for="i in Math.floor(averageRating)"
-                            :key="i" />
-                        <Icon v-if="averageRating % 1 >= 0.5" name="heroicons:star" class="w-5 h-5 text-yellow-300" />
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">{{ totalRatings }} ratings</p>
-                </div>
-
-                <!-- Breakdown Bars -->
-                <div class="space-y-1 w-full max-w-xs">
-                    <div v-for="star in [5, 4, 3, 2, 1]" :key="star" class="flex items-center gap-2">
-                        <span class="text-xs font-medium w-10">{{ star }}★</span>
-                        <div class="w-full bg-gray-200 rounded h-2 overflow-hidden">
-                            <div class="bg-yellow-400 h-full"
-                                :style="{ width: ((ratingsBreakdown[star] || 0) / totalRatings * 100) + '%' }"></div>
-                        </div>
-                        <span class="text-xs text-gray-500 w-6 text-right">{{ ratingsBreakdown[star] || 0 }}</span>
-                    </div>
-                </div>
+        <!-- Circles -->
+        <div class="flex gap-8">
+          <!-- Expert -->
+          <div class="relative w-28 h-28">
+            <svg class="w-full h-full" viewBox="0 0 36 36">
+              <circle class="text-gray-200" cx="18" cy="18" r="16" fill="none" stroke-width="4" stroke="currentColor" />
+              <circle
+                :stroke-dasharray="expertArcStroke"
+                class="text-green-500 drop-shadow-md"
+                cx="18" cy="18" r="16"
+                fill="none" stroke-width="4"
+                stroke="url(#expertGradient)"
+                stroke-linecap="round"
+                transform="rotate(-90 18 18)"
+              />
+              <defs>
+                <linearGradient id="expertGradient" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#34d399" />
+                  <stop offset="100%" stop-color="#10b981" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-sm">
+              <p class="font-medium text-gray-600">Expert</p>
+              <p class="font-bold text-green-600 text-lg">{{ expertRating.toFixed(1) }}/5</p>
             </div>
+          </div>
 
-            <!-- RIGHT: Reviews + Sort Tags -->
-            <div class="space-y-6 flex flex-col min-h-[420px]">
-                <!-- Sort Filters -->
-                <div class="flex justify-end  mb-1 flex-wrap">
-                    <button v-for="tag in sortOptions" :key="tag.value" @click="activeSort = tag.value" :class="[
-                        'px-2.5 py-1 rounded-full text-xs border transition',
-                        activeSort === tag.value
-                            ? 'bg-red-500 text-white border-red-500'
-                            : 'bg-white text-red-500 border-red-300 hover:bg-red-50'
-                    ]">
-                        {{ tag.label }}
-                    </button>
-                </div>
-
-                <!-- Expert Reviews -->
-                <div>
-                    <h3 class="text-sm font-semibold text-gray-800 mb-1">Expert Reviews</h3>
-                    <div class="flex gap-3 overflow-x-auto pb-1">
-                        <div v-for="(review, index) in sortedExpertReviews" :key="index"
-                            class="min-w-[240px] max-w-xs bg-green-50 border border-green-200 rounded-lg p-4 shadow">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="relative w-10 h-10">
-                                    <Icon name="mdi:crown"
-                                        class="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-4 text-yellow-500" />
-                                    <img :src="review.avatar"
-                                        class="w-10 h-10 rounded-full border-2 border-green-500" />
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-800">{{ review.name }}</h4>
-                                    <div class="flex text-yellow-400">
-                                        <Icon name="heroicons:star-solid" class="w-3.5 h-3.5" v-for="i in review.rating"
-                                            :key="i" />
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="text-xs text-gray-700">{{ review.comment }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Audience Reviews -->
-                <div>
-                    <h3 class="text-sm font-semibold text-gray-800 mb-1">Audience Reviews</h3>
-                    <div class="flex gap-3 overflow-x-auto pb-1">
-                        <div v-for="(review, index) in sortedAudienceReviews" :key="index"
-                            class="min-w-[240px] max-w-xs bg-red-50 border border-red-200 rounded-lg p-4 shadow">
-                            <div class="mb-1">
-                                <h4 class="text-sm font-medium text-gray-800">{{ review.name }}</h4>
-                                <div class="flex text-yellow-400">
-                                    <Icon v-for="i in 5" :key="i"
-                                        :name="i <= review.rating ? 'heroicons:star-solid' : 'heroicons:star'"
-                                        class="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p class="text-xs text-gray-700">{{ review.comment }}</p>
-                        </div>
-                    </div>
-                </div>
+          <!-- Audience -->
+          <div class="relative w-28 h-28">
+            <svg class="w-full h-full" viewBox="0 0 36 36">
+              <circle class="text-gray-200" cx="18" cy="18" r="16" fill="none" stroke-width="4" stroke="currentColor" />
+              <circle
+                :stroke-dasharray="audienceArcStroke"
+                class="text-yellow-400"
+                cx="18" cy="18" r="16"
+                fill="none" stroke-width="4"
+                stroke="currentColor"
+                stroke-linecap="round"
+                transform="rotate(-90 18 18)"
+              />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-sm">
+              <p class="font-medium text-gray-600">Audience</p>
+              <p class="font-bold text-yellow-500 text-lg">{{ averageRating.toFixed(1) }}/5</p>
             </div>
+          </div>
         </div>
-    </section>
+
+        <!-- Star breakdown -->
+        <div class="space-y-2 max-w-sm w-full">
+          <div v-for="star in [5, 4, 3, 2, 1]" :key="star" class="flex items-center gap-2 text-sm">
+            <span class="w-6 font-medium">{{ star }}★</span>
+            <div class="w-full bg-gray-200 rounded h-2 overflow-hidden">
+              <div class="bg-yellow-400 h-full" :style="{ width: getStarPercent(star) + '%' }"></div>
+            </div>
+            <span class="w-6 text-right text-gray-600">{{ ratingsBreakdown[star] || 0 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="space-y-10">
+        <!-- Expert Reviews -->
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-3">Expert Reviews</h3>
+          <div class="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth">
+            <div v-for="(review, index) in expertReviews" :key="index"
+              class="min-w-[250px] bg-gradient-to-br from-green-50 to-white border border-green-200 rounded-xl shadow p-4 snap-start">
+              <div class="flex items-center gap-3 mb-2 relative">
+                <div class="relative">
+                  <img :src="review.avatar" class="w-10 h-10 rounded-full border-2 border-green-500" />
+                  <span class="absolute -top-6 left-1/2 -translate-x-1/2 text-lg">👑</span>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-800">{{ review.name }}</p>
+                  <div class="flex text-yellow-400 text-sm leading-none">
+                    <span v-for="i in review.rating" :key="i">★</span>
+                  </div>
+                </div>
+              </div>
+              <p class="text-sm text-gray-700 leading-snug">{{ review.comment }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audience Reviews -->
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-3">Audience Reviews</h3>
+          <div class="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth">
+            <div v-for="(review, index) in audienceReviews" :key="index"
+              class="min-w-[220px] bg-red-50 border border-red-200 rounded-lg p-3 shadow-sm snap-start">
+              <p class="text-sm font-semibold text-gray-800">{{ review.name }}</p>
+              <div class="flex text-yellow-400 mb-1 mt-0.5 text-sm">
+                <span v-for="i in 5" :key="i">{{ i <= review.rating ? '★' : '☆' }}</span>
+              </div>
+              <p class="text-sm text-gray-600 leading-snug">{{ review.comment }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 
-const averageRating = 4.7
-const totalRatings = 187
+const averageRating = 4.2
+const expertRating = 4.8
+const totalRatings = 325
+
 const ratingsBreakdown = {
-    5: 140,
-    4: 30,
-    3: 10,
-    2: 5,
-    1: 2
+  5: 200,
+  4: 80,
+  3: 25,
+  2: 15,
+  1: 5
 }
 
-const animatedPercent = ref(0)
-const meterRef = ref(null)
-const ratingPercent = (averageRating / 5) * 100
+const getStarPercent = (star) => {
+  return ((ratingsBreakdown[star] || 0) / totalRatings) * 100
+}
 
-onMounted(() => {
-    const observer = new IntersectionObserver(
-        ([entry]) => {
-            if (entry.isIntersecting) {
-                animatedPercent.value = ratingPercent
-                observer.disconnect()
-            }
-        },
-        { threshold: 0.3 }
-    )
-    if (meterRef.value) observer.observe(meterRef.value)
-})
+const expertArcStroke = computed(() => `${(expertRating / 5) * 100}, 100`)
+const audienceArcStroke = computed(() => `${(averageRating / 5) * 100}, 100`)
 
-const activeSort = ref('popular')
-const sortOptions = [
-    { label: 'Popular', value: 'popular' },
-    { label: 'High → Low', value: 'high' },
-    { label: 'Low → High', value: 'low' }
+const expertReviews = [
+  {
+    name: 'Chef Arjun Mehta',
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    rating: 5,
+    comment: 'Flavourful, fresh ingredients with a fine-dine presentation. Top-notch! The fusion of spices was well-balanced and the plating was artful.'
+  },
+  {
+    name: 'Chef Rekha Sharma',
+    avatar: 'https://randomuser.me/api/portraits/women/45.jpg',
+    rating: 5,
+    comment: 'Innovative menu and impressive execution. Definitely chef-recommended! Loved the presentation and the timely delivery.'
+  },
+  {
+    name: 'Chef Vikram Das',
+    avatar: 'https://randomuser.me/api/portraits/men/61.jpg',
+    rating: 4,
+    comment: 'A solid experience with minor room for improvement. Some dishes stood out, especially the grilled paneer with mint chutney.'
+  },
+  {
+    name: 'Chef Anita Menon',
+    avatar: 'https://randomuser.me/api/portraits/women/22.jpg',
+    rating: 5,
+    comment: 'Brilliant textures and flavours. The use of herbs was refreshing, and the desserts were exceptionally crafted.'
+  },
+  {
+    name: 'Chef Rohit Nair',
+    avatar: 'https://randomuser.me/api/portraits/men/48.jpg',
+    rating: 4,
+    comment: 'Packaging was clean and ingredients were clearly fresh. The biryani was a standout with aromatic rice and perfectly cooked meat.'
+  },
+  {
+    name: 'Chef Kavita Joshi',
+    avatar: 'https://randomuser.me/api/portraits/women/33.jpg',
+    rating: 5,
+    comment: 'A delightful culinary journey. The balance of modern presentation and traditional flavors is commendable. Will recommend to others.'
+  }
 ]
 
-const expertReviews = ref([
-    {
-        name: 'Chef Arjun Mehta',
-        avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-        rating: 5,
-        comment: 'Authentic wood-fired pizza, rich in flavor and perfectly crusted.'
-    },
-    {
-        name: 'Chef Rekha',
-        avatar: 'https://randomuser.me/api/portraits/women/45.jpg',
-        rating: 5,
-        comment: 'Beautifully balanced flavors and top-notch presentation!'
-    }
-])
 
-const audienceReviews = ref([
-    {
-        name: 'Sneha Kapoor',
-        rating: 4,
-        comment: 'Pizza was hot, well-packed and delicious. Delivery was quick.'
-    },
-    {
-        name: 'Ravi Singh',
-        rating: 5,
-        comment: 'Crispy crust, perfect amount of cheese. Loved it!'
-    },
-    {
-        name: 'Anjali Verma',
-        rating: 3,
-        comment: 'Taste was good but delivery took time.'
-    },
-    {
-        name: 'Rahul Deshmukh',
-        rating: 2,
-        comment: 'Crust was soggy. Might try again later.'
-    }
-])
+const audienceReviews = [
+  {
+    name: 'Ravi Singh',
+    rating: 5,
+    comment: 'Food was amazing and the packaging was clean. Will order again! The spices were on point and the portion was generous.'
+  },
+  {
+    name: 'Sneha Kapoor',
+    rating: 4,
+    comment: 'Great flavors but delivery was a bit late. The dessert made up for the wait though!'
+  },
+  {
+    name: 'Anjali Verma',
+    rating: 3,
+    comment: 'Average taste. Quantity could be better. Felt the main dish lacked some punch.'
+  },
+  {
+    name: 'Rahul Deshmukh',
+    rating: 5,
+    comment: 'Truly delicious. Worth every rupee! The butter chicken was the best I’ve had in months.'
+  },
+  {
+    name: 'Priya Choudhary',
+    rating: 4,
+    comment: 'Loved the overall experience. Fresh veggies and warm packaging. Just wish the drinks were colder.'
+  },
+  {
+    name: 'Karan Malhotra',
+    rating: 2,
+    comment: 'Didn’t meet expectations. The wrap was soggy and delivery took too long.'
+  },
+  {
+    name: 'Meenal Arora',
+    rating: 5,
+    comment: 'Absolutely loved it! Quick delivery, hot food, and the taste was superb!'
+  },
+  {
+    name: 'Devansh Sethi',
+    rating: 4,
+    comment: 'Food was good but I missed the cutlery and tissues. Taste was authentic though.'
+  },
+  {
+    name: 'Neha Rawat',
+    rating: 3,
+    comment: 'Not bad, but not great either. The rice was undercooked but the curry saved the meal.'
+  },
+  {
+    name: 'Yashvardhan Chauhan',
+    rating: 5,
+    comment: 'Exceptional food and flawless service. Got a sweet thank-you note too. Loved it!'
+  }
+]
 
-const sortReviews = (list) => {
-    switch (activeSort.value) {
-        case 'high':
-            return [...list].sort((a, b) => b.rating - a.rating)
-        case 'low':
-            return [...list].sort((a, b) => a.rating - b.rating)
-        default:
-            return list
-    }
-}
-
-const sortedExpertReviews = computed(() => sortReviews(expertReviews.value))
-const sortedAudienceReviews = computed(() => sortReviews(audienceReviews.value))
 </script>
 
 <style scoped>
 ::-webkit-scrollbar {
-    height: 6px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-thumb {
-    background-color: #ddd;
-    border-radius: 4px;
+  background-color: #bbb;
+  border-radius: 5px;
 }
 </style>
