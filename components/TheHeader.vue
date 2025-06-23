@@ -10,12 +10,15 @@
         </button>
 
         <!-- ScootyLoot logo on mobile only -->
+        <!-- ScootyLoot logo on mobile only with two-line title -->
         <NuxtLink to="/" class="block md:hidden flex items-center gap-2">
           <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center shadow-inner">
             <span class="text-xl">🛵</span>
           </div>
-          <span class="text-base font-bold text-red-600">Scooty</span><span
-            class="text-base font-bold text-black">Loot</span>
+          <div class="flex flex-col leading-tight">
+            <span class="text-sm font-extrabold text-red-600">Scooty</span>
+            <span class="text-sm font-extrabold text-black">Loot</span>
+          </div>
         </NuxtLink>
 
         <!-- Searchbar -->
