@@ -3,12 +3,22 @@
     <!-- Sticky Header -->
     <header class="bg-white shadow-md sticky top-0 z-50">
       <div class="w-full flex items-center gap-2 sm:gap-4 lg:gap-10 px-3 sm:px-6 lg:px-10 py-3">
-        <!-- Hamburger (mobile only) -->
+
+        <!-- Sidebar toggle for mobile -->
         <button class="md:hidden text-2xl text-black hover:text-red-600 transition" @click="isSidebarOpen = true">
           ☰
         </button>
 
-        <!-- Searchbar (Compressed on mobile) -->
+        <!-- ScootyLoot logo on mobile only -->
+        <NuxtLink to="/" class="block md:hidden flex items-center gap-2">
+          <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center shadow-inner">
+            <span class="text-xl">🛵</span>
+          </div>
+          <span class="text-base font-bold text-red-600">Scooty</span><span
+            class="text-base font-bold text-black">Loot</span>
+        </NuxtLink>
+
+        <!-- Searchbar -->
         <div class="flex-grow">
           <div class="relative">
             <input type="text" placeholder="Search..."
@@ -16,9 +26,6 @@
             <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
           </div>
         </div>
-
-        <!-- Explore link -->
-      
 
         <!-- Cart -->
         <button @click="cartStore.openCart()"
@@ -30,15 +37,8 @@
           </span>
         </button>
       </div>
-
-      <!-- Delivering To (Only on sm and above)
-  <div class="hidden sm:flex items-center px-6 pb-3 text-sm font-medium text-gray-700">
-    Delivering to:
-    <button class="underline ml-1 hover:text-red-600 transition" @click="fetchLocation">
-      {{ locationLabel }} ⌄
-    </button>
-  </div> -->
     </header>
+
 
     <!-- Sidebar (Desktop) -->
     <aside class="hidden md:flex fixed top-0 left-0 w-56 h-full bg-white shadow-xl border-r z-40 flex-col">

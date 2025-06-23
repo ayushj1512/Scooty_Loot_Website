@@ -1,10 +1,10 @@
 <template>
-  <section class="relative w-full h-[70vh] sm:h-[90vh] overflow-hidden rounded-2xl shadow-xl">
+  <section class="relative w-full h-[70vh] sm:h-[90vh] overflow-hidden rounded-b-2xl shadow-xl">
     <!-- Slides -->
     <transition-group name="slide-right" tag="div" class="w-full h-full relative">
       <div v-for="(image, index) in currentImages" :key="index" v-show="currentIndex === index"
         class="absolute inset-0 transition-transform duration-700 ease-in-out">
-        <img :src="image" alt="Hero Banner" class="w-full h-full object-fit" />
+        <img :src="image" alt="Hero Banner" class="w-full h-full object-cover" />
       </div>
     </transition-group>
 
@@ -18,13 +18,14 @@
   </section>
 </template>
 
+
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 const mobileImages = [
-  '/mobile_banner_1.png',
-  '/mobile_banner_2.png',
-  '/mobile_banner_3.png'
+  '/mobile_banner_4.png',
+  '/mobile_banner_5.png',
+  '/mobile_banner_6.png'
 ]
 
 const desktopImages = [
