@@ -30,5 +30,17 @@ export default defineNuxtConfig({
     }
   },
 
-  plugins: ['~/plugins/motion.client.ts']
+  plugins: ['~/plugins/motion.client.ts'],
+
+  app: {
+    head: {
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/png',
+          href: '/icons/scooter.png'
+        }
+      ]
+    }
+  }
 })
