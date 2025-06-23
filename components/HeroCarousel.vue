@@ -4,7 +4,7 @@
     <transition-group name="slide-right" tag="div" class="w-full h-full relative">
       <div v-for="(image, index) in currentImages" :key="index" v-show="currentIndex === index"
         class="absolute inset-0 transition-transform duration-700 ease-in-out">
-        <img :src="image" alt="Hero Banner" class="w-full h-full object-cover" />
+        <img :src="image" alt="Hero Banner" class="w-full h-full object-fit" />
       </div>
     </transition-group>
 
