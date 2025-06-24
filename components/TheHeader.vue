@@ -46,20 +46,31 @@
     <!-- Sidebar (Desktop) -->
     <aside class="hidden md:flex fixed top-0 left-0 w-56 h-full bg-white shadow-xl border-r z-40 flex-col">
       <!-- Sidebar Content -->
-      <NuxtLink to="/"
-        class="px-4 pb-4 border-b flex items-center space-x-3 mt-[14px] hover:bg-red-50 transition rounded-md">
-        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-inner">
-          <span class="text-2xl">🛵</span>
-        </div>
-        <div class="leading-tight">
-          <h1 class="text-xl font-extrabold tracking-wide text-gray-900 whitespace-nowrap">
-            <span class="text-red-600">Scooty</span><span class="text-black">Loot</span>
-          </h1>
-          <p class="text-xs text-gray-500 font-medium tracking-wide mt-0.5 whitespace-nowrap">
-            Quick. Tasty. Lootworthy.
-          </p>
-        </div>
-      </NuxtLink>
+      <NuxtLink
+  to="/"
+  class="px-4 pb-4 border-b flex items-center space-x-3 mt-[14px] hover:bg-red-50 transition rounded-md"
+  aria-label="Back to ScootyLoot Home"
+>
+  <!-- Image Logo -->
+  <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-inner overflow-hidden">
+    <img
+      src="/icons/scooter.png"
+      alt="ScootyLoot Logo"
+      class="w-6 h-6 object-contain"
+    />
+  </div>
+
+  <!-- Brand Text -->
+  <div class="leading-tight">
+    <h1 class="text-xl font-extrabold tracking-wide text-gray-900 whitespace-nowrap">
+      <span class="text-red-600">Scooty</span><span class="text-black">Loot</span>
+    </h1>
+    <p class="text-xs text-gray-500 font-medium tracking-wide mt-0.5 whitespace-nowrap">
+      Quick. Tasty. Lootworthy.
+    </p>
+  </div>
+</NuxtLink>
+
 
 
 

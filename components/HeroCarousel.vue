@@ -1,7 +1,8 @@
 <template>
-  <section class="relative w-full h-[70vh] sm:h-[90vh] overflow-hidden rounded-b-2xl shadow-xl">
+  <section class="relative w-full h-[70vh] sm:h-[90vh] overflow-hidden rounded-b-2xl shadow-xl" @touchstart="startSwipe"
+    @touchend="endSwipe" @mousedown="startSwipe" @mouseup="endSwipe">
     <!-- Slides -->
-    <transition-group name="slide-right" tag="div" class="w-full h-full relative">
+    <transition-group name="slide" tag="div" class="w-full h-full relative">
       <div v-for="(image, index) in currentImages" :key="index" v-show="currentIndex === index"
         class="absolute inset-0 transition-transform duration-700 ease-in-out">
         <img :src="image" alt="Hero Banner" class="w-full h-full object-fit" />
@@ -17,7 +18,6 @@
     </div>
   </section>
 </template>
-
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
@@ -35,6 +35,11 @@ const desktopImages = [
 ]
 
 const isMobile = ref(false)
+const currentIndex = ref(0)
+let interval = null
+const startX = ref(0)
+
+const currentImages = computed(() => (isMobile.value ? mobileImages : desktopImages))
 
 const updateScreen = () => {
   if (typeof window !== 'undefined') {
@@ -42,51 +47,66 @@ const updateScreen = () => {
   }
 }
 
+const startSwipe = (e) => {
+  startX.value = e.touches ? e.touches[0].clientX : e.clientX
+}
+
+const endSwipe = (e) => {
+  const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX
+  const diff = startX.value - endX
+
+  if (Math.abs(diff) > 50) {
+    if (diff > 0) {
+      // Swipe Left
+      currentIndex.value = (currentIndex.value + 1) % currentImages.value.length
+    } else {
+      // Swipe Right
+      currentIndex.value =
+        (currentIndex.value - 1 + currentImages.value.length) % currentImages.value.length
+    }
+  }
+}
+
 onMounted(() => {
-  updateScreen() // ✅ Initial check
+  updateScreen()
   window.addEventListener('resize', updateScreen)
+
   interval = setInterval(() => {
     currentIndex.value = (currentIndex.value + 1) % currentImages.value.length
-  }, 4000)
+  }, 5000)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateScreen)
   clearInterval(interval)
 })
-
-const currentImages = computed(() => (isMobile.value ? mobileImages : desktopImages))
-
-const currentIndex = ref(0)
-let interval = null
 </script>
 
 <style scoped>
-/* Slide Right Animation */
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: all 0.7s ease;
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.6s ease;
   position: absolute;
   width: 100%;
   height: 100%;
 }
 
-.slide-right-enter-from {
+.slide-enter-from {
   transform: translateX(100%);
   opacity: 0;
 }
 
-.slide-right-enter-to {
+.slide-enter-to {
   transform: translateX(0%);
   opacity: 1;
 }
 
-.slide-right-leave-from {
+.slide-leave-from {
   transform: translateX(0%);
   opacity: 1;
 }
 
-.slide-right-leave-to {
+.slide-leave-to {
   transform: translateX(-100%);
   opacity: 0;
 }
