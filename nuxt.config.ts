@@ -1,46 +1,69 @@
-// nuxt.config.ts
-import { defineNuxtConfig } from 'nuxt/config'
+/// <reference types="@nuxt/ui" />
+
+import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
-  compatibilityDate: '2024-04-03',
+  compatibilityDate: "2024-04-03",
   devtools: { enabled: false },
 
-  css: ['~/assets/css/main.css'],
+  css: ["~/assets/css/main.css"],
 
   modules: [
-    '@nuxt/ui',
-    '@pinia/nuxt',
-    '@vueuse/nuxt',
-    '@nuxt/icon',
-    'vue-sonner/nuxt'
+    // ✅ Pinia module config
+    [
+      "@pinia/nuxt",
+      {
+        autoImports: ["defineStore"],
+      },
+    ],
+
+    // ✅ Nuxt UI module config
+    [
+      "@nuxt/ui",
+      {
+        global: true,
+      },
+    ],
+
+    "@vueuse/nuxt",
+
+    // ✅ Nuxt Icon config
+    [
+      "@nuxt/icon",
+      {
+        collections: ["heroicons", "simple-icons"],
+      },
+    ],
+
+    "vue-sonner/nuxt",
   ],
 
-  // @ts-expect-error - not recognized by default Nuxt config types
-  ui: {
-    global: true
-  },
-
-  icon: {
-    collections: ['heroicons', 'simple-icons']
+  imports: {
+    dirs: ["stores"], // Auto-import Pinia stores
   },
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE || 'http://localhost:3000/api'
-    }
+      apiBase: process.env.API_BASE || "http://localhost:3000/api",
+    },
   },
 
-  plugins: ['~/plugins/motion.client.ts'],
+  plugins: [
+    "~/plugins/motion.client.ts",
+    "~/plugins/initSssConfig.ts",
+    "~/plugins/initCategoryProducts.ts",
+    "~/plugins/piniaPersist.client.ts",
+  ],
 
   app: {
     head: {
       link: [
         {
-          rel: 'icon',
-          type: 'image/png',
-          href: '/icons/scooter.png'
-        }
-      ]
-    }
-  }
-})
+          rel: "icon",
+          type: "image/png",
+          href: "/icons/scooter.png",
+        },
+      ],
+    },
+  },
+});

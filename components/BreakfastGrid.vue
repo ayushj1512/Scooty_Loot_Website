@@ -60,7 +60,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useCartStore } from '../stores/cart'
+import { useCartStore } from '~/stores/cart'
 import ProductDialog from './ProductDialog.vue'
 
 const cartStore = useCartStore()
@@ -110,7 +110,7 @@ const addToCart = (product) => {
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

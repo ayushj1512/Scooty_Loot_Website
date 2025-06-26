@@ -10,7 +10,6 @@
         </button>
 
         <!-- ScootyLoot logo on mobile only -->
-        <!-- ScootyLoot logo on mobile only with two-line title -->
         <NuxtLink to="/" class="block md:hidden flex items-center gap-2">
           <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center shadow-inner">
             <span class="text-xl">🛵</span>
@@ -22,12 +21,9 @@
         </NuxtLink>
 
         <!-- Searchbar -->
+        <!-- Searchbar -->
         <div class="flex-grow">
-          <div class="relative">
-            <input type="text" placeholder="Search..."
-              class="w-full sm:w-[300px] md:w-[400px] lg:w-full pl-5 pr-12 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-full text-sm text-black placeholder-gray-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition" />
-            <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
-          </div>
+          <SearchBar v-model:search="searchTerm" />
         </div>
 
         <!-- Cart -->
@@ -42,38 +38,23 @@
       </div>
     </header>
 
-
     <!-- Sidebar (Desktop) -->
     <aside class="hidden md:flex fixed top-0 left-0 w-56 h-full bg-white shadow-xl border-r z-40 flex-col">
-      <!-- Sidebar Content -->
-      <NuxtLink
-  to="/"
-  class="px-4 pb-4 border-b flex items-center space-x-3 mt-[14px] hover:bg-red-50 transition rounded-md"
-  aria-label="Back to ScootyLoot Home"
->
-  <!-- Image Logo -->
-  <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-inner overflow-hidden">
-    <img
-      src="/icons/scooter.png"
-      alt="ScootyLoot Logo"
-      class="w-6 h-6 object-contain"
-    />
-  </div>
-
-  <!-- Brand Text -->
-  <div class="leading-tight">
-    <h1 class="text-xl font-extrabold tracking-wide text-gray-900 whitespace-nowrap">
-      <span class="text-red-600">Scooty</span><span class="text-black">Loot</span>
-    </h1>
-    <p class="text-xs text-gray-500 font-medium tracking-wide mt-0.5 whitespace-nowrap">
-      Quick. Tasty. Lootworthy.
-    </p>
-  </div>
-</NuxtLink>
-
-
-
-
+      <NuxtLink to="/"
+        class="px-4 pb-4 border-b flex items-center space-x-3 mt-[14px] hover:bg-red-50 transition rounded-md"
+        aria-label="Back to ScootyLoot Home">
+        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-inner overflow-hidden">
+          <img src="/icons/scooter.png" alt="ScootyLoot Logo" class="w-6 h-6 object-contain" />
+        </div>
+        <div class="leading-tight">
+          <h1 class="text-xl font-extrabold tracking-wide text-gray-900 whitespace-nowrap">
+            <span class="text-red-600">Scooty</span><span class="text-black">Loot</span>
+          </h1>
+          <p class="text-xs text-gray-500 font-medium tracking-wide mt-0.5 whitespace-nowrap">
+            Quick. Tasty. Lootworthy.
+          </p>
+        </div>
+      </NuxtLink>
 
       <nav class="flex flex-col p-4 space-y-2 overflow-y-auto">
         <NuxtLink to="/" class="sidebar-link"><span class="emoji">🏠</span><span class="label">Home</span></NuxtLink>
@@ -91,10 +72,7 @@
     <!-- Sidebar (Mobile Drawer) -->
     <transition name="fade">
       <div v-if="isSidebarOpen" class="md:hidden fixed inset-0 z-50 flex">
-        <!-- Backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-40" @click="isSidebarOpen = false"></div>
-
-        <!-- Drawer Panel -->
         <aside class="w-56 bg-white shadow-xl border-r z-50 flex flex-col h-full relative pt-6">
           <button class="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl"
             @click="isSidebarOpen = false">
@@ -116,8 +94,7 @@
             </div>
           </NuxtLink>
 
-
-          <<nav class="flex flex-col p-4 space-y-2 overflow-y-auto">
+          <nav class="flex flex-col p-4 space-y-2 overflow-y-auto">
             <NuxtLink to="/" @click="isSidebarOpen = false" class="sidebar-link">
               <span class="emoji">🏠</span><span class="label">Home</span>
             </NuxtLink>
@@ -133,8 +110,7 @@
             <NuxtLink to="/jewellery" @click="isSidebarOpen = false" class="sidebar-link">
               <span class="emoji">💍</span><span class="label">Jewellery</span>
             </NuxtLink>
-            </nav>
-
+          </nav>
         </aside>
       </div>
     </transition>
@@ -147,40 +123,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useCartStore } from '~/stores/cart'
+import SearchBar from '~/components/SearchBar.vue'
 
 const cartStore = useCartStore()
-const locationLabel = ref('Detecting...')
 const isSidebarOpen = ref(false)
+const searchTerm = ref('')
 
-async function fetchLocation() {
-  if (!navigator.geolocation) {
-    locationLabel.value = 'Not Supported'
-    return
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const lat = pos.coords.latitude
-      const lon = pos.coords.longitude
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-        const data = await res.json()
-        locationLabel.value = data.address?.postcode || 'Your Pincode'
-      } catch {
-        locationLabel.value = 'Unable to fetch'
-      }
-    },
-    () => {
-      locationLabel.value = 'Permission denied'
-    }
-  )
-}
-
-onMounted(() => {
-  fetchLocation()
-})
 </script>
 
 <style scoped>

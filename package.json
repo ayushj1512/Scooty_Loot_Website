@@ -20,6 +20,7 @@
     "motion": "^12.18.1",
     "nuxt": "^3.13.0",
     "pinia": "^2.2.2",
+    "pinia-plugin-persistedstate": "^4.3.0",
     "swiper": "^11.2.8",
     "vue-sonner": "^2.0.0"
   },

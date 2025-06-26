@@ -26,7 +26,7 @@
       </p>
 
       <!-- ✅ CTA Button -->
-      <NuxtLink to="/restaurants"
+      <NuxtLink to="/bestsellers"
         class="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl shadow transition duration-200">
         <Icon name="heroicons:shopping-bag" class="w-5 h-5" />
         Order More

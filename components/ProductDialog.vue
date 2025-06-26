@@ -17,7 +17,7 @@
           <img
             :src="mainImage"
             :alt="product.title || 'Product Image'"
-            class="w-full h-48 object-contain rounded-md bg-gray-100"
+            class="w-full h-48 object-contain rounded-md "
             @error="imageError"
           />
 
@@ -69,7 +69,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { useCartStore } from '../stores/cart'
+import { useCartStore } from '~/stores/cart'
 
 const emit = defineEmits(['close'])
 

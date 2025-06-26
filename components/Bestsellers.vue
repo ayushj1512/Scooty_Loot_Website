@@ -1,5 +1,62 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useCartStore } from '~/stores/cart'
+import ProductDialog from '~/components/ProductDialog.vue'
+import { useFetch } from 'nuxt/app'
+
+// ✅ Define Bestseller type
+interface Bestseller {
+  id: string
+  name: string
+  price: number
+  description: string
+  image: string
+  restaurantId?: string
+}
+
+// ✅ SSR fetch with correct type
+const { data: bestsellers, pending: loadingBS } = useFetch<Bestseller[]>('/api/bestsellers')
+
+const cartStore = useCartStore()
+const selectedProduct = ref<Bestseller | null>(null)
+const showDialog = ref(false)
+const notificationMessage = ref('')
+const showNotification = ref(false)
+
+function triggerNotification(message: string) {
+  notificationMessage.value = message
+  showNotification.value = true
+  setTimeout(() => {
+    showNotification.value = false
+  }, 2500)
+}
+
+function openDialog(product: Bestseller) {
+  selectedProduct.value = product
+  showDialog.value = true
+}
+
+function addToCart(product: Bestseller) {
+  const item = {
+    id: product.id,
+    name: product.name,
+    image: product.image,
+    price: product.price,
+    restaurantId: product.restaurantId || 'main',
+  }
+
+  if (cartStore.canAddFromRestaurant(item.restaurantId)) {
+    cartStore.addItem(item)
+    triggerNotification(`"${product.name}" added to cart`)
+    showDialog.value = false
+  } else {
+    alert('You can only add items from the same restaurant.')
+  }
+}
+</script>
+
 <template>
-  <!-- Notification -->
+  <!-- ✅ Notification -->
   <transition name="slide-fade">
     <div v-if="showNotification"
       class="fixed top-5 right-5 z-50 max-w-sm w-full bg-gradient-to-br from-green-50 to-white border-l-[6px] border-green-500 text-green-900 px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-md flex items-start gap-3 animate-fade-in-up"
@@ -16,10 +73,10 @@
     </div>
   </transition>
 
-  <!-- Product Dialog -->
+  <!-- ✅ Product Dialog -->
   <ProductDialog v-if="selectedProduct" :product="selectedProduct" :show="showDialog" @close="showDialog = false" />
 
-  <!-- Horizontal Bestseller Section -->
+  <!-- ✅ Horizontal Bestseller Section -->
   <section class="py-12 bg-gradient-to-b from-gray-50 to-white">
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex justify-between items-center mb-6">
@@ -29,6 +86,7 @@
         </NuxtLink>
       </div>
 
+      <!-- Loading shimmer -->
       <div v-if="loadingBS" class="flex space-x-4 overflow-x-auto no-scrollbar">
         <div v-for="i in 5" :key="i"
           class="min-w-[240px] bg-gray-100 shimmer-card h-64 rounded-xl shadow p-4 overflow-hidden relative">
@@ -38,7 +96,8 @@
         </div>
       </div>
 
-      <div v-else class="flex space-x-4 overflow-x-auto no-scrollbar pb-2">
+      <!-- Render bestsellers -->
+      <div v-else-if="bestsellers?.length" class="flex space-x-4 overflow-x-auto no-scrollbar pb-2">
         <div v-for="dish in bestsellers.slice(0, 5)" :key="dish.id"
           class="min-w-[240px] group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-1 transition duration-300">
           <img :src="dish.image" alt="" loading="lazy"
@@ -63,87 +122,10 @@
   </section>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useCartStore } from '../stores/cart'
-import ProductDialog from '~/components/ProductDialog.vue'
-import { useRouter } from 'vue-router'
-
-const cartStore = useCartStore()
-const bestsellers = ref<any[]>([])
-const loadingBS = ref(true)
-const selectedProduct = ref(null)
-const showDialog = ref(false)
-const notificationMessage = ref('')
-const showNotification = ref(false)
-
-function triggerNotification(message: string) {
-  notificationMessage.value = message
-  showNotification.value = true
-  setTimeout(() => {
-    showNotification.value = false
-  }, 2500)
-}
-
-function openDialog(product: any) {
-  selectedProduct.value = product
-  showDialog.value = true
-}
-
-function addToCart(product: any) {
-  const item = {
-    id: product.id,
-    name: product.name,
-    image: product.image,
-    price: product.price,
-    restaurantId: product.restaurantId || 'main',
-  }
-
-  if (cartStore.canAddFromRestaurant(item.restaurantId)) {
-    cartStore.addItem(item)
-    triggerNotification(`"${product.name}" added to cart`)
-    showDialog.value = false
-  } else {
-    alert('You can only add items from the same restaurant.')
-  }
-}
-
-const fetchBestsellers = async () => {
-  loadingBS.value = true
-  try {
-    const res = await fetch(
-      `https://api.streetstylestore.com/collections/products/documents/search?q=*&filter_by=categories:=893&sort_by=date_updated_unix:desc&per_page=50&page=1&x-typesense-api-key=Bm23NaocNyDb2qWiT9Mpn4qXdSmq7bqdoLzY6espTB3MC6Rx`
-    )
-    const json = await res.json()
-    bestsellers.value = json.hits.map((h: any) => {
-      const doc = h.document || h
-      const raw = doc.product_data ? JSON.parse(doc.product_data) : null
-      const img = raw?.images?.[0]?.bigImg?.replace(/\\/g, '/') || doc.img
-      return {
-        id: doc.id,
-        name: doc.name,
-        description: doc.description_short || 'This is a delicious bestselling product!',
-        price: doc.selling_price || doc.real_selling_price || 0,
-        image: img,
-        product_data: doc.product_data
-      }
-    })
-  } catch (err) {
-    console.error('Error fetching bestsellers:', err)
-  } finally {
-    loadingBS.value = false
-  }
-}
-
-onMounted(() => {
-  fetchBestsellers()
-})
-</script>
-
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -157,7 +139,6 @@ onMounted(() => {
   scrollbar-width: none;
 }
 
-/* Shimmer */
 .shimmer-card::after {
   content: "";
   position: absolute;
