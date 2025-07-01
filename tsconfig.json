@@ -1,13 +1,29 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./*"]
+      "~/*": ["./*"],
+      "@/*": ["./*"]
     },
-    "types": ["@types/node"],
-    "moduleResolution": "node",
-    "resolveJsonModule": true
-  }
+    "types": ["@types/node", "vue", "nuxt"],
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "allowJs": false,                     // ⛔ Prevent TypeScript from compiling .js files
+    "noEmit": true                        // ✅ Avoid writing files (Nuxt handles it)
+  },
+  "exclude": [
+    "node_modules",
+    ".nuxt",
+    "dist"
+  ],
+  "include": [
+    "nuxt.config.ts",
+    "**/*.ts",
+    "**/*.vue"
+  ]
 }

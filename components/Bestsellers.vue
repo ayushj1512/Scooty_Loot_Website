@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+// @ts-ignore
+
 import { useCartStore } from '~/stores/cart'
 import ProductDialog from '~/components/ProductDialog.vue'
 import { useFetch } from 'nuxt/app'

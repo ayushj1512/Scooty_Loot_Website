@@ -1,9 +1,9 @@
 <template>
   <div class="fixed inset-0 z-50 overflow-hidden">
-    <!-- Background overlay -->
+    <!-- Overlay -->
     <div class="absolute inset-0 bg-black/60 transition-opacity duration-300" @click="cartStore.closeCart()"></div>
 
-    <!-- Slide-over panel -->
+    <!-- Slide-over Cart Panel -->
     <div
       class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl rounded-l-xl transition-transform duration-300">
       <div class="flex flex-col h-full">
@@ -15,9 +15,8 @@
           </button>
         </div>
 
-        <!-- Scrollable Content & Sticky Footer -->
+        <!-- Cart Items -->
         <div class="flex flex-col flex-1 min-h-0">
-          <!-- Cart Items -->
           <div class="flex-1 overflow-y-auto px-5 py-4">
             <div v-if="cartStore.items.length === 0" class="text-center py-14">
               <Icon name="heroicons:shopping-bag" class="w-14 h-14 text-gray-300 mx-auto mb-4" />
@@ -56,18 +55,23 @@
             </div>
           </div>
 
-          <!-- Sticky Footer -->
-          <div v-if="cartStore.items.length > 0"
-            class="border-t border-gray-200 p-5 bg-white shadow-inner">
-            <div class="flex justify-between items-center mb-4">
+          <!-- Footer -->
+          <div v-if="cartStore.items.length > 0" class="border-t border-gray-200 p-5 bg-white shadow-inner space-y-3">
+            <div class="flex justify-between items-center mb-1">
               <span class="text-lg font-semibold text-gray-800">Total</span>
               <span class="text-lg font-bold text-gray-900">
                 ₹{{ cartStore.total.toFixed(0) }}
               </span>
             </div>
+
             <button @click="proceedToCheckout"
               class="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors duration-300">
               Proceed to Checkout
+            </button>
+
+            <button @click="handleClearCart"
+              class="w-full py-2 text-sm text-gray-500 hover:text-red-600 hover:underline transition duration-200">
+              Clear Cart
             </button>
           </div>
         </div>
@@ -78,11 +82,28 @@
 
 <script setup>
 import { useCartStore } from '~/stores/cart'
+import { useSessionStore } from '~/stores/useSessionStore'
+import { navigateTo } from '#app'
+import { useToast } from '~/composables/useToast'
 
 const cartStore = useCartStore()
+const session = useSessionStore()
+const { show: triggerToast } = useToast()
 
-const proceedToCheckout = () => {
+const proceedToCheckout = async () => {
   cartStore.closeCart()
-  navigateTo('/checkout')
+
+  if (!session.isAuthenticated) {
+    triggerToast('Please login to continue to checkout.', 'warning') // 👈 updated to warning toast
+    session.setRedirect?.('/checkout')
+    setTimeout(() => navigateTo('/login'), 1500)
+  } else {
+    navigateTo('/checkout')
+  }
+}
+
+const handleClearCart = () => {
+  cartStore.clearCart()
+  triggerToast('Your cart has been cleared.', 'success') // ✅ keep this success
 }
 </script>

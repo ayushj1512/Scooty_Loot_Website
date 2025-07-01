@@ -148,7 +148,7 @@ const handleBackspace = (index: number, e: KeyboardEvent) => {
 }
 </script>
 
-<style scoped>
+<!-- <style >
 .otp-input {
     @apply w-12 h-12 text-lg text-center border border-red-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition bg-white text-black;
 }
@@ -165,4 +165,4 @@ const handleBackspace = (index: number, e: KeyboardEvent) => {
     @apply animate-spin rounded-full border-2 border-t-2 border-white;
     border-top-color: transparent;
 }
-</style>
+</style> -->

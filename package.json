@@ -17,10 +17,11 @@
     "@vueuse/motion": "^3.0.3",
     "@vueuse/nuxt": "^11.0.3",
     "axios": "^1.10.0",
+    "js-cookie": "^3.0.5",
     "motion": "^12.18.1",
     "nuxt": "^3.13.0",
     "pinia": "^2.2.2",
-    "pinia-plugin-persistedstate": "^4.3.0",
+    "pinia-plugin-persistedstate": "^4.4.1",
     "swiper": "^11.2.8",
     "vue-sonner": "^2.0.0"
   },
@@ -28,7 +29,7 @@
     "@nuxt/icon": "^1.5.1",
     "@nuxt/types": "^2.18.1",
     "@tailwindcss/forms": "^0.5.9",
-    "@types/node": "^24.0.3",
+    "@types/node": "^24.0.8",
     "cross-env": "^7.0.3",
     "unplugin-icons": "^22.1.0",
     "unplugin-vue": "^6.2.0"

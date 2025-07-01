@@ -89,7 +89,8 @@ const addToCart = () => {
     name: props.product.name,
     image: props.product.image,
     price: props.product.price,
-    restaurantId: props.product.restaurantId || 'main'
+    restaurantId: props.product.restaurantId || 'main',
+    quantity: 1 // ✅ Added to satisfy CartItem type
   }
 
   if (cartStore.canAddFromRestaurant(item.restaurantId)) {

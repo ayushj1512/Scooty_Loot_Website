@@ -1,37 +1,53 @@
-import { defineStore } from 'pinia'
+// stores/useSssConfig.ts
+import { defineStore } from "pinia";
 
-export const useSssConfig = defineStore('sssConfig', {
+export const useSssConfig = defineStore("sssConfig", {
   state: () => ({
-    loading: false,
-    loaded: false,
-    data: null as Record<string, any> | null, // ✅ Type-safe
+    _loading: false,
+    _loaded: false,
+    _data: null as Record<string, any> | null,
   }),
 
-  actions: {
-    async fetchConfig() {
-      if (this.loaded || this.loading) return // ✅ Skip if already fetched or fetching
+  getters: {
+    loading: (state) => state._loading,
+    loaded: (state) => state._loaded,
+    data: (state) => state._data,
+  },
 
-      this.loading = true
+  actions: {
+    setLoading(value: boolean) {
+      this._loading = value;
+    },
+    setLoaded(value: boolean) {
+      this._loaded = value;
+    },
+    setData(data: Record<string, any> | null) {
+      this._data = data;
+    },
+
+    async fetchConfig() {
+      if (this._loaded || this._loading) return;
+
+      this.setLoading(true);
       try {
         const res = await fetch(
-          'https://api.streetstylestore.com/collections/sss_config/documents/scootyloot-slider?a=1&x-typesense-api-key=F5gdSFxpg6bi8ZXfuybIsQy074HtBDkC'
-        )
+          "https://api.streetstylestore.com/collections/sss_config/documents/scootyloot-slider?a=1&x-typesense-api-key=F5gdSFxpg6bi8ZXfuybIsQy074HtBDkC"
+        );
 
-        const json = await res.json()
-        this.data = JSON.parse(json.data)
-        this.loaded = true
+        const json = await res.json();
+        this.setData(JSON.parse(json.data));
+        this.setLoaded(true);
       } catch (error) {
-        console.error('❌ Error fetching SSS config:', error)
-        this.data = null
-        this.loaded = false
+        console.error("❌ Error fetching SSS config:", error);
+        this.setData(null);
+        this.setLoaded(false);
       } finally {
-        this.loading = false
+        this.setLoading(false);
       }
     },
   },
 
-  // ✅ Optional: Persist in client only (e.g. skip for server-side prefetching)
   persist: {
-    storage: typeof window !== 'undefined' ? localStorage : undefined, // skip persist on SSR
+    storage: typeof window !== "undefined" ? localStorage : undefined,
   },
-})
+});
