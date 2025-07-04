@@ -1,69 +1,74 @@
 /// <reference types="@nuxt/ui" />
 
-import { defineNuxtConfig } from "nuxt/config";
+import { defineNuxtConfig } from 'nuxt/config'
 
 export default defineNuxtConfig({
-  compatibilityDate: "2024-04-03",
-  devtools: { enabled: false },
+  compatibilityDate: '2024-04-03',
 
-  css: ["~/assets/css/main.css"],
+  devtools: {
+    enabled: true, // ✅ This is the correct place to enable Nuxt DevTools
+  },
+
+  css: ['~/assets/css/main.css'],
 
   modules: [
-    // ✅ Pinia module config
-    [
-      "@pinia/nuxt",
-      {
-        autoImports: ["defineStore"],
-      },
-    ],
+    // ✅ Pinia for state management
+    ['@pinia/nuxt', {
+      autoImports: ['defineStore'],
+    }],
 
-    // ✅ Nuxt UI module config
-    [
-      "@nuxt/ui",
-      {
-        global: true,
-      },
-    ],
+    // ✅ Nuxt UI for built-in components
+    ['@nuxt/ui', {
+      global: true,
+    }],
 
-    "@vueuse/nuxt",
+    // ✅ Composables & utilities
+    '@vueuse/nuxt',
 
-    // ✅ Nuxt Icon config
-    [
-      "@nuxt/icon",
-      {
-        collections: ["heroicons", "simple-icons"],
-      },
-    ],
+    // ✅ Icon module
+    ['@nuxt/icon', {
+      collections: ['heroicons', 'simple-icons'],
+    }],
 
-    "vue-sonner/nuxt",
+    // ✅ Toast / Notification
+    'vue-sonner/nuxt',
   ],
 
   imports: {
-    dirs: ["stores"], // Auto-import Pinia stores
+    dirs: ['stores'], // Auto-import Pinia stores
   },
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE || "http://localhost:3000/api",
+      apiBase: process.env.API_BASE || 'http://localhost:3000/api',
     },
   },
 
   plugins: [
-    "~/plugins/motion.client.ts",
-    "~/plugins/initSssConfig.ts",
-    "~/plugins/initCategoryProducts.ts",
-    "~/plugins/piniaPersist.client.ts",
+    '~/plugins/motion.client.ts',
+    '~/plugins/initSssConfig.ts',
+    // '~/plugins/initCategoryProducts.ts', // Uncomment if needed
+    '~/plugins/piniaPersist.client.ts',
   ],
 
   app: {
     head: {
       link: [
         {
-          rel: "icon",
-          type: "image/png",
-          href: "/icons/scooter.png",
+          rel: 'icon',
+          type: 'image/png',
+          href: '/icons/scooter.png',
         },
       ],
     },
   },
-});
+
+  // ✅ If you need Vue devtools for debugging, set this in nuxt.config:
+  vue: {
+    compilerOptions: {},
+  },
+
+  nitro: {
+    preset: 'node',
+  },
+})

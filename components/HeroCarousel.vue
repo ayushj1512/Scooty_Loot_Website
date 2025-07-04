@@ -1,18 +1,20 @@
 <template>
   <section
-    class="relative w-full h-[70vh] sm:h-[90vh] overflow-hidden rounded-b-2xl shadow-xl"
+    class="relative w-full h-[70vh] sm:h-[90vh] overflow-hidden rounded-b-2xl shadow-xl bg-black"
     @touchstart="startSwipe"
     @touchend="endSwipe"
     @mousedown="startSwipe"
     @mouseup="endSwipe"
   >
-    <!-- Slides -->
-    <transition-group name="slide" tag="div" class="w-full h-full relative">
+    <!-- Slide Track -->
+    <div
+      class="flex transition-transform duration-500 ease-in-out h-full"
+      :style="{ transform: `translateX(-${currentIndex * 100}%)` }"
+    >
       <div
         v-for="(image, index) in currentImages"
         :key="index"
-        v-show="currentIndex === index"
-        class="absolute inset-0 transition-transform duration-700 ease-in-out"
+        class="min-w-full h-full"
       >
         <img
           v-if="image"
@@ -22,7 +24,7 @@
           class="w-full h-full object-fit"
         />
       </div>
-    </transition-group>
+    </div>
 
     <!-- Dots -->
     <div
@@ -42,64 +44,59 @@
   </section>
 </template>
 
+
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useSssConfig } from '@/stores/useSssConfig'
 
 const sssConfig = useSssConfig()
-
 const isMobile = ref(false)
 const currentIndex = ref(0)
-let interval = null
 const startX = ref(0)
+let interval = null
 
-// Mobile images (can stay hardcoded or come from API later)
+// Fallback mobile banners
 const mobileImages = [
   '/mobile_banner_4.png',
   '/mobile_banner_5.png',
   '/mobile_banner_6.png'
 ]
 
-// Get correct images from API via store
+// Get banners from store or fallback
 const currentImages = computed(() => {
   if (isMobile.value) return mobileImages
-  return sssConfig.data?.slider?.map((item) => item.desktopImg) || []
+  return sssConfig.data?.slider?.map(item => item.desktopImg).filter(Boolean) || []
 })
 
+// Detect screen size
 const updateScreen = () => {
   if (typeof window !== 'undefined') {
     isMobile.value = window.innerWidth < 768
   }
 }
 
+// Swipe start
 const startSwipe = (e) => {
   startX.value = 'touches' in e ? e.touches[0].clientX : e.clientX
 }
 
+// Swipe end
 const endSwipe = (e) => {
-  const endX = 'changedTouches' in e
-    ? e.changedTouches[0].clientX
-    : e.clientX
+  const endX = 'changedTouches' in e ? e.changedTouches[0].clientX : e.clientX
   const diff = startX.value - endX
-
-  if (Math.abs(diff) > 50) {
-    if (diff > 0) {
-      currentIndex.value = (currentIndex.value + 1) % currentImages.value.length
-    } else {
-      currentIndex.value =
-        (currentIndex.value - 1 + currentImages.value.length) %
-        currentImages.value.length
-    }
+  if (diff > 50) {
+    currentIndex.value = (currentIndex.value + 1) % currentImages.value.length
   }
 }
 
+// Image error fallback
 const onImageError = (e) => {
-  const target = e.target
-  if (target && target.tagName === 'IMG') {
-    target.src = '/fallback-banner.png'
+  if (e.target && e.target.tagName === 'IMG') {
+    e.target.src = '/fallback-banner.png'
   }
 }
 
+// Lifecycle
 onMounted(() => {
   updateScreen()
   window.addEventListener('resize', updateScreen)
@@ -116,6 +113,7 @@ onUnmounted(() => {
   if (interval) clearInterval(interval)
 })
 </script>
+
 
 <style scoped>
 .slide-enter-active,

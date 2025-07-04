@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-10 px-4">
+  <div class="min-h-screen bg-white py-10 px-4">
     <div class="max-w-6xl mx-auto">
       <!-- Empty Cart State -->
       <div v-if="cartStore.isEmpty" class="text-center py-20">
@@ -14,62 +14,68 @@
         <!-- Form Section -->
         <div class="lg:col-span-2 space-y-6">
           <div class="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">Verify Mobile via OTP</h2>
-            <OtpVerification :cart-id="cartId" @verified="onOtpVerified" />
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Personal Details</h2>
 
-            <div :class="{ 'opacity-50 pointer-events-none': !isOtpVerified }" class="transition-opacity duration-300">
-              <h2 class="text-2xl font-bold text-gray-900 mt-10 mb-6">Personal Details</h2>
-              <form @submit.prevent class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label class="label">First Name</label>
-                    <input v-model="form.firstName" type="text" required class="input-field" />
-                  </div>
-                  <div>
-                    <label class="label">Last Name</label>
-                    <input v-model="form.lastName" type="text" required class="input-field" />
-                  </div>
-                </div>
-
+            <form @submit.prevent="submitOrder" class="space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="label">Email</label>
-                  <input v-model="form.email" type="email" required class="input-field" />
+                  <label class="label">First Name</label>
+                  <input v-model="form.firstName" type="text" required class="input-field" />
                 </div>
-
-                <hr class="my-6 border-gray-300" />
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">Address Details</h2>
-
                 <div>
-                  <label class="label">Delivery Address</label>
-                  <input v-model="form.address" type="text" required class="input-field" />
+                  <label class="label">Last Name</label>
+                  <input v-model="form.lastName" type="text" required class="input-field" />
                 </div>
+              </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label class="label">City</label>
-                    <input v-model="form.city" type="text" required class="input-field" />
-                  </div>
-                  <div>
-                    <label class="label">State</label>
-                    <input v-model="form.state" type="text" required class="input-field" />
-                  </div>
-                  <div>
-                    <label class="label">ZIP Code</label>
-                    <input v-model="form.zipCode" type="text" required class="input-field" />
-                  </div>
-                </div>
+              <div>
+                <label class="label">Email</label>
+                <input v-model="form.email" type="email" required class="input-field" />
+              </div>
 
+              <hr class="my-6 border-gray-300" />
+              <h2 class="text-2xl font-bold text-gray-900 mb-6">Address Details</h2>
+
+              <div>
+                <label class="label">Delivery Address</label>
+                <input v-model="form.address" type="text" required class="input-field" />
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label class="label">Delivery Instructions (Optional)</label>
-                  <textarea v-model="form.instructions" rows="3" class="input-field"
-                    placeholder="e.g., Leave at the door..."></textarea>
+                  <label class="label">City</label>
+                  <input v-model="form.city" type="text" required class="input-field" />
                 </div>
-              </form>
-            </div>
+                <div>
+                  <label class="label">State</label>
+                  <input v-model="form.state" type="text" required class="input-field" />
+                </div>
+                <div>
+                  <label class="label">ZIP Code</label>
+                  <input v-model="form.zipCode" type="text" required class="input-field" />
+                </div>
+              </div>
+
+              <div>
+                <label class="label">Delivery Instructions (Optional)</label>
+                <textarea v-model="form.instructions" rows="3" class="input-field"
+                  placeholder="e.g., Leave at the door..."></textarea>
+              </div>
+
+              <button type="submit" :disabled="isSubmitting" :class="[
+                'w-full mt-6 py-3 px-4 rounded-lg font-medium transition-colors',
+                isSubmitting
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-red-500 hover:bg-red-600 text-white'
+              ]">
+                <span v-if="isSubmitting">Placing Order...</span>
+                <span v-else>Place Order</span>
+              </button>
+            </form>
           </div>
         </div>
 
-        <!-- 💳 Order Summary Section -->
+        <!-- Order Summary Section -->
         <div class="lg:col-span-1">
           <div class="bg-white rounded-xl shadow border border-gray-200 p-6 sticky top-24">
             <h2 class="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
@@ -90,23 +96,13 @@
 
             <div class="border-t border-gray-200 pt-4 space-y-3">
               <p class="text-green-600 font-medium text-sm">
-                You're all set! 🎉 Just verify & place the order.
+                You're all set! 🎉 Just place the order.
               </p>
               <div class="flex justify-between font-bold text-lg">
                 <span class="text-gray-900">Total</span>
                 <span class="text-gray-900">₹{{ grandTotal.toFixed(2) }}</span>
               </div>
             </div>
-
-            <button @click="submitOrder" :disabled="!isOtpVerified || isSubmitting" :class="[
-              'w-full mt-6 py-3 px-4 rounded-lg font-medium transition-colors',
-              !isOtpVerified || isSubmitting
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-red-500 hover:bg-red-600 text-white'
-            ]">
-              <span v-if="isSubmitting">Placing Order...</span>
-              <span v-else>Place Order</span>
-            </button>
           </div>
         </div>
       </div>
@@ -117,7 +113,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useCartStore } from '~/stores/cart'
-import OtpVerification from '~/components/OtpVerification.vue'
+import { useSessionStore } from '~/stores/useSessionStore'
 
 useHead({
   title: 'Checkout - ScootyLoot',
@@ -125,9 +121,9 @@ useHead({
 })
 
 const cartStore = useCartStore()
+const session = useSessionStore()
+
 const isSubmitting = ref(false)
-const isOtpVerified = ref(false)
-const phoneNumber = ref('')
 const cartId = ref(`cart_${Date.now()}`)
 
 const form = ref({
@@ -142,11 +138,6 @@ const form = ref({
 })
 
 const grandTotal = computed(() => cartStore.total)
-
-const onOtpVerified = ({ phone }) => {
-  phoneNumber.value = phone
-  isOtpVerified.value = true
-}
 
 const submitOrder = async () => {
   isSubmitting.value = true
@@ -164,9 +155,9 @@ const submitOrder = async () => {
       id_customer: '3239',
       user_hash_key: '0e9adc3df6bb13546bea59ee3f2a0bbb1',
       address: {
-        mobileNumber: phoneNumber.value,
-        firstName: 'test',
-        lastName: 'test',
+        mobileNumber: session.user?.mobile,
+        firstName: form.value.firstName,
+        lastName: form.value.lastName,
         pinCode: form.value.zipCode,
         address1: form.value.address,
         address2: '',
@@ -204,12 +195,13 @@ const submitOrder = async () => {
 }
 </script>
 
+
 <style scoped>
-/* .input-field {
+.input-field {
   @apply w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition;
 }
 
 .label {
   @apply block text-sm font-medium text-gray-700 mb-1;
-} */
+}
 </style>

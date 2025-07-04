@@ -5,16 +5,24 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./*"],
-      "@/*": ["./*"]
+      "~/*": [
+        "./*"
+      ],
+      "@/*": [
+        "./*"
+      ]
     },
-    "types": ["@types/node", "vue", "nuxt"],
+    "types": [
+      "@types/node",
+      "vue",
+      "nuxt"
+    ],
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,
-    "allowJs": false,                     // ⛔ Prevent TypeScript from compiling .js files
-    "noEmit": true                        // ✅ Avoid writing files (Nuxt handles it)
+    "allowJs": false,
+    "noEmit": true
   },
   "exclude": [
     "node_modules",
@@ -24,6 +32,7 @@
   "include": [
     "nuxt.config.ts",
     "**/*.ts",
-    "**/*.vue"
+    "**/*.vue",
+    "shims-vue.d.ts" // Make sure this file is included here
   ]
 }

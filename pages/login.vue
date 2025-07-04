@@ -63,7 +63,6 @@
                                 v-model="otpDigits[index]" @input="handleDigitInput(index)"
                                 @keydown.backspace="handleBackspace(index, $event)" />
                         </div>
-                        <p class="text-xs text-gray-400 mt-2 text-center">Hint: Enter 1234 for demo</p>
                     </div>
                 </transition>
 
@@ -83,32 +82,41 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, onMounted } from 'vue'
+import { ref, reactive, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSessionStore } from '~/stores/useSessionStore'
 
 const router = useRouter()
 const session = useSessionStore()
+
 const mobile = ref('')
 const loading = ref(false)
 const otpStep = ref(false)
+const otpVerified = ref(false)
 const otpDigits = reactive(['', '', '', ''])
 const otpInput = ref([])
-
+const showNotification = ref(false)
 const notificationMessage = ref('')
 const notificationType = ref('success')
-const showNotification = ref(false)
 
 function getOtp() {
     return otpDigits.join('')
 }
 
+function triggerNotification(message, type = 'success') {
+    notificationMessage.value = message
+    notificationType.value = type
+    showNotification.value = true
+    setTimeout(() => {
+        showNotification.value = false
+    }, 3000)
+}
+
 function handleDigitInput(index) {
-    const digit = otpDigits[index]
-    if (/^\d$/.test(digit) && index < 3) {
+    const digit = otpDigits[index].replace(/\D/g, '') // keep only digits
+    otpDigits[index] = digit
+    if (digit && index < 3) {
         nextTick(() => otpInput.value[index + 1]?.focus())
-    } else if (!digit) {
-        otpDigits[index] = ''
     }
 }
 
@@ -118,61 +126,112 @@ function handleBackspace(index, e) {
     }
 }
 
-function triggerNotification(message, type = 'success') {
-    notificationMessage.value = message
-    notificationType.value = type
-    showNotification.value = true
-    setTimeout(() => {
-        showNotification.value = false
-    }, 2500)
-}
+// Send OTP to the entered mobile
+async function sendOtp() {
+    if (!/^\d{10}$/.test(mobile.value)) {
+        triggerNotification('Enter a valid 10-digit mobile number', 'error')
+        return
+    }
 
-async function handleSubmit() {
     loading.value = true
     try {
-        if (!otpStep.value) {
-            await new Promise(r => setTimeout(r, 700))
-            otpStep.value = true
-            triggerNotification('OTP sent successfully to your mobile 📲', 'success')
-            nextTick(() => otpInput.value[0]?.focus())
-        } else {
-            await new Promise(r => setTimeout(r, 500))
-            const enteredOtp = getOtp()
-
-            if (enteredOtp === '1234') {
-                session.setSession(
-                    {
-                        name: 'Ayush Juneja',
-                        mobile: mobile.value,
-                        email: 'test@ayush.com'
-                    },
-                    'mock-token-xyz'
-                )
-
-                triggerNotification('Login successful 🎉', 'success')
-
-                const redirectTo = session.redirectPath || '/profile'
-                session.clearRedirect?.() // optional chaining in case method missing
-
-                // Delay to let user see notification
-                setTimeout(() => {
-                    router.push(redirectTo)
-                }, 1000)
-            } else {
-                triggerNotification('Invalid OTP ❌ Please try again', 'error')
-            }
+        const payload = {
+            gateway_action: 'customer/sendLoginOTP',
+            email: mobile.value,
+            site: 'sss',
+            microSite: 'funkypanda',
+            id_cart: ''
         }
+
+        await fetch('https://gateway.streetstylestore.com/gateway/v1/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+
+        otpStep.value = true
+        otpDigits.fill('')
+        triggerNotification('OTP sent successfully to your mobile 📲', 'success')
+        await nextTick()
+        otpInput.value[0]?.focus()
+    } catch (err) {
+        console.error(err)
+        triggerNotification('Failed to send OTP. Please try again.', 'error')
     } finally {
         loading.value = false
     }
 }
 
-onMounted(() => {
-    if (Notification && Notification.permission !== 'granted') {
-        Notification.requestPermission()
+// Verify the entered OTP
+async function verifyOtp() {
+    const enteredOtp = getOtp()
+    if (!/^\d{4}$/.test(enteredOtp)) {
+        triggerNotification('Enter a valid 4-digit OTP', 'error')
+        return
     }
-})
+
+    loading.value = true
+    try {
+        const payload = {
+            gateway_action: 'customer/verifyOTP',
+            id_cart: '31955416',
+            microSite: 'funkypanda',
+            mobileNumber: mobile.value,
+            otp: enteredOtp,
+            site: 'sss'
+        }
+
+        const response = await fetch('https://gateway.streetstylestore.com/gateway/v1/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+
+        const data = await response.json()
+
+        if (data.status === 200) {
+            session.setSession(
+                {
+                    name: '',
+                    mobile: mobile.value,
+                    email: ''
+                },
+                data.key || 'mock-token-xyz'
+            )
+
+            otpVerified.value = true
+            triggerNotification('Login successful 🎉', 'success')
+
+            const redirectTo = session.redirectPath || '/profile'
+            session.clearRedirect?.()
+
+            setTimeout(() => {
+                router.push(redirectTo)
+            }, 1000)
+        } else if (data.status === 202) {
+            triggerNotification(data.loginOTPMessage || 'Invalid OTP ❌', 'error')
+        } else {
+            triggerNotification('Unexpected response received ❌', 'error')
+            console.warn('Unhandled status:', data)
+        }
+    } catch (err) {
+        console.error(err)
+        triggerNotification('Something went wrong. Please try again.', 'error')
+    } finally {
+        loading.value = false
+    }
+}
+
+
+async function handleSubmit() {
+    if (!otpStep.value) {
+        await sendOtp()
+    } else if (!otpVerified.value) {
+        await verifyOtp()
+    }
+}
 </script>
+
 
 
 
