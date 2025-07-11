@@ -9,35 +9,31 @@ export const useCategoryProducts = defineStore('categoryProducts', {
   }),
 
   actions: {
-    async fetchCategoryProducts() {
+    async fetchCategoryProducts(categoryId: string) {
       const config = useRuntimeConfig()
       const baseUrl = config.public.typesenseBaseUrl
       const apiKey = config.public.typesenseProductsApiKey
 
-      this.loading = true
-      this.error = null
-
-      console.log('📦 Base URL:', baseUrl)
-      console.log('🔑 API Key:', apiKey)
-
       if (!baseUrl || !apiKey) {
-        console.error('❌ Missing Typesense config')
-        this.error = 'Missing Typesense config'
-        this.loading = false
+        const msg = '❌ Missing Typesense config'
+        console.error(msg)
+        this.error = msg
         return
       }
+
+      this.loading = true
+      this.error = null
 
       try {
         const queryParams = new URLSearchParams({
           q: '*',
-          filter_by: 'categories:=893',
+          filter_by: `categories:=${categoryId}`,
           sort_by: 'date_updated_unix:desc',
           per_page: '50',
           page: '1'
         })
 
         const url = `${baseUrl}/products/documents/search?${queryParams.toString()}`
-        console.log('🌐 Fetching category products from:', url)
 
         const response = await fetch(url, {
           headers: {
@@ -70,6 +66,7 @@ export const useCategoryProducts = defineStore('categoryProducts', {
       } catch (err) {
         console.error('❌ Error fetching category products:', err)
         this.error = 'Failed to load category products.'
+        throw err
       } finally {
         this.loading = false
       }

@@ -10,7 +10,7 @@
         </button>
 
         <!-- ScootyLoot logo on mobile only -->
-        <NuxtLink to="/" class="block md:hidden flex items-center gap-2">
+        <NuxtLink to="/" class="block md:hidden items-center gap-2">
           <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center shadow-inner">
             <span class="text-xl">🛵</span>
           </div>
@@ -29,10 +29,12 @@
         <button @click="cartStore.openCart()"
           class="relative text-black hover:text-red-600 text-xl transition-transform hover:scale-110">
           🛒
-          <span v-if="cartStore.itemCount > 0"
-            class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow">
-            {{ cartStore.itemCount }}
-          </span>
+          <ClientOnly>
+            <span v-if="cartStore.itemCount > 0"
+              class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow">
+              {{ cartStore.itemCount }}
+            </span>
+          </ClientOnly>
         </button>
 
         <!-- Profile Icon -->
@@ -62,10 +64,14 @@
 
       <nav class="flex flex-col p-4 space-y-2 overflow-y-auto">
         <NuxtLink to="/" class="sidebar-link"><span class="emoji">🏠</span><span class="label">Home</span></NuxtLink>
-        <NuxtLink to="/grocery" class="sidebar-link"><span class="emoji">🛒</span><span class="label">Grocery</span></NuxtLink>
-        <NuxtLink to="/fashion" class="sidebar-link"><span class="emoji">👗</span><span class="label">Fashion</span></NuxtLink>
-        <NuxtLink to="/food" class="sidebar-link"><span class="emoji">🍔</span><span class="label">Food</span></NuxtLink>
-        <NuxtLink to="/jewellery" class="sidebar-link"><span class="emoji">💍</span><span class="label">Jewellery</span></NuxtLink>
+        <NuxtLink to="/grocery" class="sidebar-link"><span class="emoji">🛒</span><span class="label">Grocery</span>
+        </NuxtLink>
+        <NuxtLink to="/fashion" class="sidebar-link"><span class="emoji">👗</span><span class="label">Fashion</span>
+        </NuxtLink>
+        <NuxtLink to="/food" class="sidebar-link"><span class="emoji">🍔</span><span class="label">Food</span>
+        </NuxtLink>
+        <NuxtLink to="/jewellery" class="sidebar-link"><span class="emoji">💍</span><span class="label">Jewellery</span>
+        </NuxtLink>
       </nav>
     </aside>
 
@@ -93,11 +99,16 @@
           </NuxtLink>
 
           <nav class="flex flex-col p-4 space-y-2 overflow-y-auto">
-            <NuxtLink to="/" @click="isSidebarOpen = false" class="sidebar-link"><span class="emoji">🏠</span><span class="label">Home</span></NuxtLink>
-            <NuxtLink to="/grocery" @click="isSidebarOpen = false" class="sidebar-link"><span class="emoji">🛒</span><span class="label">Grocery</span></NuxtLink>
-            <NuxtLink to="/fashion" @click="isSidebarOpen = false" class="sidebar-link"><span class="emoji">👗</span><span class="label">Fashion</span></NuxtLink>
-            <NuxtLink to="/food" @click="isSidebarOpen = false" class="sidebar-link"><span class="emoji">🍔</span><span class="label">Food</span></NuxtLink>
-            <NuxtLink to="/jewellery" @click="isSidebarOpen = false" class="sidebar-link"><span class="emoji">💍</span><span class="label">Jewellery</span></NuxtLink>
+            <NuxtLink to="/" @click="isSidebarOpen = false" class="sidebar-link"><span class="emoji">🏠</span><span
+                class="label">Home</span></NuxtLink>
+            <NuxtLink to="/grocery" @click="isSidebarOpen = false" class="sidebar-link"><span
+                class="emoji">🛒</span><span class="label">Grocery</span></NuxtLink>
+            <NuxtLink to="/fashion" @click="isSidebarOpen = false" class="sidebar-link"><span
+                class="emoji">👗</span><span class="label">Fashion</span></NuxtLink>
+            <NuxtLink to="/food" @click="isSidebarOpen = false" class="sidebar-link"><span class="emoji">🍔</span><span
+                class="label">Food</span></NuxtLink>
+            <NuxtLink to="/jewellery" @click="isSidebarOpen = false" class="sidebar-link"><span
+                class="emoji">💍</span><span class="label">Jewellery</span></NuxtLink>
           </nav>
         </aside>
       </div>
@@ -114,28 +125,7 @@
 import { ref } from 'vue'
 import { useCartStore } from '~/stores/cart'
 import SearchBar from '~/components/SearchBar.vue'
-
 const cartStore = useCartStore()
 const isSidebarOpen = ref(false)
 const searchTerm = ref('')
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-/* 
-.sidebar-link {
-  @apply flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition;
-}
-
-.sidebar-link .emoji {
-  @apply text-xl;
-} */
-</style>

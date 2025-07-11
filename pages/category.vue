@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCategoryProducts } from '~/stores/useCategoryProducts'
 import { useCartStore } from '~/stores/cart'
 import { storeToRefs } from 'pinia'
 import ProductQuickView from '../components/ProductDialog.vue'
+import { useAsyncData } from 'nuxt/app'
+
 
 const route = useRoute()
 const store = useCategoryProducts()
 const cartStore = useCartStore()
 
-const { products, loading } = storeToRefs(store)
+const { items: products, loading } = storeToRefs(store)
 const selectedSort = ref('popular')
 
 // ✅ Toast logic
@@ -68,16 +70,16 @@ function onImageError(event: Event) {
   if (target && target.tagName === 'IMG') target.src = '/fallback-icon.png'
 }
 
-// ✅ Fetch
-onMounted(() => {
-  const categoryId = (route.query.cat as string) || '892'
-  store.fetchCategoryProducts(categoryId)
-})
+// ✅ Initial fetch via SSR + CSR fallback
+const categoryId = (route.query.cat as string) || '892'
+await useAsyncData('category-products', () => store.fetchCategoryProducts(categoryId))
 
+// ✅ Watch for route param change
 watch(() => route.query.cat, (newCat) => {
   store.fetchCategoryProducts((newCat as string) || '892')
 })
 
+// ✅ Lock scroll on modal open
 watch(showModal, (val) => {
   document.body.style.overflow = val ? 'hidden' : ''
 })

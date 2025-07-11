@@ -184,8 +184,7 @@ const fetchBestsellers = async () => {
 const apiKey = config.public.typesenseProductsApiKey
     const baseUrl = config.public.typesenseBaseUrl
 
-    console.log('📦 Typesense Base URL:', baseUrl)
-    console.log('🔑 Typesense API Key:', apiKey)
+
 
     if (!apiKey || !baseUrl) {
       console.error('❌ Missing API key or base URL')
@@ -202,7 +201,6 @@ const apiKey = config.public.typesenseProductsApiKey
     })
 
     const url = `${baseUrl}/products/documents/search?${queryParams.toString()}`
-    console.log('🌐 Fetching Bestsellers from URL:', url)
 
     const res = await fetch(url)
     const json = await res.json()
@@ -212,7 +210,6 @@ const apiKey = config.public.typesenseProductsApiKey
       throw new Error(json.message || 'Failed to fetch bestsellers.')
     }
 
-    console.log('✅ Response JSON:', json)
 
     if (!json?.hits || !Array.isArray(json.hits)) {
       console.warn('⚠️ Unexpected response structure:', json)
@@ -242,7 +239,7 @@ const apiKey = config.public.typesenseProductsApiKey
 
     bestsellers.value = data
     currentPage.value = 1
-    console.log('🛒 Bestsellers loaded:', data)
+
   } catch (err) {
     console.error('❌ Error fetching bestsellers:', err)
     bestsellers.value = []

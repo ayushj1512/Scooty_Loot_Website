@@ -75,16 +75,15 @@ async function fetchBestsellers() {
       'Content-Type': 'application/json'
     }
 
-    console.log('📤 FETCHING:', fullUrl)
-    console.log('📤 HEADERS:', headers)
+
 
     const res = await fetch(fullUrl, { headers })
-    console.log('📥 STATUS:', res.status, res.statusText)
+
 
     let json: any = null
     try {
       json = await res.json()
-      console.log('✅ JSON RESPONSE:', json)
+
     } catch (parseError) {
       const raw = await res.text()
       console.error('❌ Failed to parse JSON. Raw response:', raw)
