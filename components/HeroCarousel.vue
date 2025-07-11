@@ -1,146 +1,163 @@
 <template>
-  <section
-    class="relative w-full h-[70vh] sm:h-[90vh] overflow-hidden rounded-b-2xl shadow-xl bg-black"
-    @touchstart="startSwipe"
-    @touchend="endSwipe"
-    @mousedown="startSwipe"
-    @mouseup="endSwipe"
-  >
+  <section class="relative w-full h-[70vh] sm:h-[90vh] overflow-hidden rounded-b-2xl shadow-xl bg-black"
+    @touchstart="startSwipe" @touchmove="onTouchMove" @touchend="endSwipe" @mousedown="startSwipe"
+    @mousemove="onMouseMove" @mouseup="endSwipe">
     <!-- Slide Track -->
-    <div
-      class="flex transition-transform duration-500 ease-in-out h-full"
-      :style="{ transform: `translateX(-${currentIndex * 100}%)` }"
-    >
-      <div
-        v-for="(image, index) in currentImages"
-        :key="index"
-        class="min-w-full h-full"
-      >
-        <img
-          v-if="image"
-          :src="image"
-          @error="onImageError"
-          alt="Banner"
-          class="w-full h-full object-fit"
-        />
+    <div class="flex transition-transform duration-500 ease-in-out h-full"
+      :style="{ transform: `translateX(-${currentIndex * 100}%)` }">
+      <div v-for="(image, index) in extendedImages" :key="index" class="min-w-full h-full">
+        <img v-if="image" :src="image" @error="onImageError" alt="Banner" class="w-full h-full object-cover" />
       </div>
     </div>
 
     <!-- Dots -->
-    <div
-      class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10"
-    >
-      <button
-        v-for="(_, index) in currentImages"
-        :key="index"
-        @click="currentIndex = index"
-        :class="{
-          'bg-white': currentIndex === index,
-          'bg-gray-400': currentIndex !== index
-        }"
-        class="w-3 h-3 rounded-full transition-all duration-300"
-      />
+    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+      <button v-for="(img, index) in images" :key="index" @click="goToIndex(index)" :class="{
+        'bg-white': currentIndex === index,
+        'bg-gray-400': currentIndex !== index
+      }" class="w-3 h-3 rounded-full transition-all duration-300" />
     </div>
   </section>
 </template>
-
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useSssConfig } from '@/stores/useSssConfig'
 
 const sssConfig = useSssConfig()
-const isMobile = ref(false)
 const currentIndex = ref(0)
-const startX = ref(0)
+const startX = ref(null)
+const currentX = ref(null)
+const isDragging = ref(false)
 let interval = null
 
-// Fallback mobile banners
+const isMobile = ref(false)
 const mobileImages = [
   '/mobile_banner_4.png',
   '/mobile_banner_5.png',
   '/mobile_banner_6.png'
 ]
 
-// Get banners from store or fallback
-const currentImages = computed(() => {
-  if (isMobile.value) return mobileImages
-  return sssConfig.data?.slider?.map(item => item.desktopImg).filter(Boolean) || []
+const images = computed(() => {
+  return isMobile.value
+    ? mobileImages
+    : sssConfig.data?.slider?.map((item) => item.desktopImg).filter(Boolean) || []
 })
 
-// Detect screen size
-const updateScreen = () => {
-  if (typeof window !== 'undefined') {
-    isMobile.value = window.innerWidth < 768
-  }
+// Duplicate first and last image for infinite swipe illusion
+const extendedImages = computed(() => {
+  if (!images.value.length) return []
+  return [images.value[images.value.length - 1], ...images.value, images.value[0]]
+})
+
+// Jump without animation (used in infinite loop jump)
+const jumpTo = (index) => {
+  currentIndex.value = index
 }
 
-// Swipe start
+const updateScreen = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
+const goToIndex = (index) => {
+  currentIndex.value = index
+}
+
+// Autoplay
+const startAutoSlide = () => {
+  interval = setInterval(() => {
+    currentIndex.value++
+    if (currentIndex.value > images.value.length) {
+      setTimeout(() => {
+        currentIndex.value = 1
+      }, 510)
+    }
+  }, 5000)
+}
+
+const stopAutoSlide = () => {
+  if (interval) clearInterval(interval)
+}
+
+// Swipe Handling
 const startSwipe = (e) => {
+  isDragging.value = true
   startX.value = 'touches' in e ? e.touches[0].clientX : e.clientX
 }
 
-// Swipe end
-const endSwipe = (e) => {
-  const endX = 'changedTouches' in e ? e.changedTouches[0].clientX : e.clientX
-  const diff = startX.value - endX
-  if (diff > 50) {
-    currentIndex.value = (currentIndex.value + 1) % currentImages.value.length
-  }
+const onTouchMove = (e) => {
+  if (!isDragging.value) return
+  currentX.value = e.touches[0].clientX
 }
 
-// Image error fallback
+const onMouseMove = (e) => {
+  if (!isDragging.value) return
+  currentX.value = e.clientX
+}
+
+const endSwipe = () => {
+  if (!isDragging.value || startX.value === null || currentX.value === null) return
+  const diff = startX.value - currentX.value
+
+  if (diff > 50) {
+    currentIndex.value++
+    if (currentIndex.value > images.value.length) {
+      setTimeout(() => {
+        currentIndex.value = 1
+      }, 510)
+    }
+  } else if (diff < -50) {
+    currentIndex.value--
+    if (currentIndex.value < 0) {
+      setTimeout(() => {
+        currentIndex.value = images.value.length - 1
+      }, 510)
+    }
+  }
+
+  isDragging.value = false
+  startX.value = null
+  currentX.value = null
+}
+
+// Fix infinite loop edge cases
+watch(currentIndex, (val) => {
+  if (val === images.value.length + 1) {
+    setTimeout(() => {
+      currentIndex.value = 1
+    }, 10)
+  }
+  if (val === 0) {
+    setTimeout(() => {
+      currentIndex.value = images.value.length
+    }, 10)
+  }
+})
+
 const onImageError = (e) => {
   if (e.target && e.target.tagName === 'IMG') {
     e.target.src = '/fallback-banner.png'
   }
 }
 
-// Lifecycle
 onMounted(() => {
   updateScreen()
   window.addEventListener('resize', updateScreen)
 
   if (!sssConfig.data) sssConfig.fetchConfig()
 
-  interval = setInterval(() => {
-    currentIndex.value = (currentIndex.value + 1) % currentImages.value.length
-  }, 5000)
+  if (images.value.length) {
+    currentIndex.value = 1 // Start from actual first image
+    startAutoSlide()
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateScreen)
-  if (interval) clearInterval(interval)
+  stopAutoSlide()
 })
 </script>
 
-
 <style scoped>
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.6s ease;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.slide-enter-from {
-  transform: translateX(100%);
-  opacity: 0;
-}
-
-.slide-enter-to {
-  transform: translateX(0%);
-  opacity: 1;
-}
-
-.slide-leave-from {
-  transform: translateX(0%);
-  opacity: 1;
-}
-
-.slide-leave-to {
-  transform: translateX(-100%);
-  opacity: 0;
-}
+/* Optional: Add custom animation styles */
 </style>

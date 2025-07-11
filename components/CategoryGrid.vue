@@ -6,7 +6,18 @@ import { useSssConfig } from '~/stores/useSssConfig.js'
 const router = useRouter()
 const store = useSssConfig()
 
-const categories = computed(() => store.data?.foodCategory || [])
+const momoCategory = {
+  id: 'momos-manual',
+  name: 'Momos',
+  img: '/momo.png'
+}
+
+const categories = computed(() => {
+  const fromApi = store.data?.foodCategory || []
+  return [momoCategory, ...fromApi] // Place Momos at top
+  // return [...fromApi, momoCategory] // Place Momos at end if preferred
+})
+
 const loading = computed(() => store.loading)
 
 function navigateToCategory(categoryId: string) {
@@ -20,6 +31,7 @@ function onImageError(e: Event) {
   }
 }
 </script>
+
 
 <template>
   <div class="py-8 px-4 max-w-7xl mx-auto">

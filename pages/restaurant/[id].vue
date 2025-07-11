@@ -115,7 +115,9 @@ import { ref, onMounted } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import axios from 'axios'
 import ReviewSection from '@/components/ReviewSection.vue'
+import { useRuntimeConfig } from '#imports' // ✅ Nuxt composable to access runtime env
 
+const config = useRuntimeConfig()
 const route = useRoute()
 const cartStore = useCartStore()
 
@@ -162,19 +164,18 @@ onMounted(async () => {
 async function fetchFunkyPandaMenu() {
   loading.value = true
   try {
-    const { data } = await axios.get(
-      'https://api.streetstylestore.com/collections/products/documents/search',
-      {
-        params: {
-          q: '*',
-          filter_by: 'categories:=893',
-          sort_by: 'date_updated_unix:desc',
-          per_page: 50,
-          page: 1,
-          'x-typesense-api-key': 'Bm23NaocNyDb2qWiT9Mpn4qXdSmq7bqdoLzY6espTB3MC6Rx'
-        }
+    const { data } = await axios.get(config.public.typesenseBaseUrl, {
+      params: {
+        q: '*',
+        filter_by: 'categories:=893',
+        sort_by: 'date_updated_unix:desc',
+        per_page: 50,
+        page: 1,
+      },
+      headers: {
+        'x-typesense-api-key': config.typesenseApiKey
       }
-    )
+    })
 
     menuItems.value = data.hits.map((hit) => {
       const doc = hit.document
@@ -270,6 +271,7 @@ function handleAddToCart(item) {
   }, 2000)
 }
 </script>
+
 
 <style scoped>
 .slide-fade-enter-active,

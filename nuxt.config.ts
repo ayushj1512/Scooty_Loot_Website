@@ -6,49 +6,51 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
 
   devtools: {
-    enabled: true, // ✅ This is the correct place to enable Nuxt DevTools
+    enabled: true,
   },
 
   css: ['~/assets/css/main.css'],
 
   modules: [
-    // ✅ Pinia for state management
     ['@pinia/nuxt', {
       autoImports: ['defineStore'],
     }],
-
-    // ✅ Nuxt UI for built-in components
     ['@nuxt/ui', {
       global: true,
     }],
-
-    // ✅ Composables & utilities
     '@vueuse/nuxt',
-
-    // ✅ Icon module
     ['@nuxt/icon', {
       collections: ['heroicons', 'simple-icons'],
     }],
-
-    // ✅ Toast / Notification
     'vue-sonner/nuxt',
   ],
 
   imports: {
-    dirs: ['stores'], // Auto-import Pinia stores
+    dirs: ['stores'],
   },
 
   runtimeConfig: {
+    // ❌ Private server-only (if needed)
+    typesenseApiKey: process.env.TYPESENSE_API_KEY || '',
+
     public: {
+      // ✅ Public client/server
       apiBase: process.env.API_BASE || 'http://localhost:3000/api',
+
+      // ✅ Shared base URL for all Typesense endpoints
+      typesenseBaseUrl: process.env.TYPESENSE_BASE_URL || '',
+
+      // ✅ Separate API keys
+      typesenseProductsApiKey: process.env.TYPESENSE_PRODUCTS_API_KEY || '',
+      typesenseConfigApiKey: process.env.TYPESENSE_CONFIG_API_KEY || '',
     },
   },
 
   plugins: [
     '~/plugins/motion.client.ts',
     '~/plugins/initSssConfig.ts',
-    // '~/plugins/initCategoryProducts.ts', // Uncomment if needed
     '~/plugins/piniaPersist.client.ts',
+    // '~/plugins/initCategoryProducts.ts', // Uncomment if needed
   ],
 
   app: {
@@ -63,7 +65,6 @@ export default defineNuxtConfig({
     },
   },
 
-  // ✅ If you need Vue devtools for debugging, set this in nuxt.config:
   vue: {
     compilerOptions: {},
   },

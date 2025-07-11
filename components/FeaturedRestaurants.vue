@@ -8,9 +8,22 @@ const store = useSssConfig()
 
 const isLoading = ref(true)
 
-const restaurants = computed(() => store.data?.featured_restaurants || [])
+// Add "OYE-ASIAN" restaurant manually
+const restaurants = computed(() => {
+  const oyeAsian = {
+    name: 'OYE-ASIAN',
+    img: '/OYEASIAN.png',
+    url: '/oye-asian', // Customize route if needed
+    cuisine: 'Asian Fusion',
+    deliveryTime: 20,
+    rating: 4.6
+  }
 
-// Simulate delay (remove this in production)
+  const restList = store.data?.featured_restaurants || []
+  return [oyeAsian, ...restList] // Add to top. Use [...restList, oyeAsian] to add to bottom.
+})
+
+// Simulate loading delay (for skeleton)
 onMounted(() => {
   setTimeout(() => {
     isLoading.value = false
@@ -22,6 +35,7 @@ const openRestaurant = (rest, index) => {
   router.push(targetUrl)
 }
 </script>
+
 
 <template>
   <section class="py-10 bg-white">

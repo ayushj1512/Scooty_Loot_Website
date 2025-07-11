@@ -121,17 +121,40 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useCartStore } from '~/stores/cart'
+import { useRuntimeConfig } from '#imports'
 
+const config = useRuntimeConfig()
 const cartStore = useCartStore()
 
-const bestsellers = ref<any[]>([])
+type SortType = 'latest' | 'priceAsc' | 'priceDesc'
+
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  image: string
+  restaurantId?: string
+  product_data?: any
+}
+
+interface CartItem {
+  id: string
+  name: string
+  image: string
+  price: number
+  restaurantId: string
+  quantity: number
+}
+
+const bestsellers = ref<Product[]>([])
 const loading = ref(true)
 const shimmerCount = ref(8)
 const currentPage = ref(1)
 const perPage = 16
-const sortBy = ref('latest')
+const sortBy = ref<SortType>('latest')
 
-// ✅ Toast
+// Toast logic
 const showToast = ref(false)
 const toastMessage = ref('')
 const triggerToast = (message: string) => {
@@ -140,69 +163,105 @@ const triggerToast = (message: string) => {
   setTimeout(() => (showToast.value = false), 2500)
 }
 
-const sortTags = [
+// ✅ Explicitly typed sort tags
+const sortTags: { label: string; value: SortType }[] = [
   { label: 'Latest', value: 'latest' },
   { label: 'Price: Low to High', value: 'priceAsc' },
-  { label: 'Price: High to Low', value: 'priceDesc' },
+  { label: 'Price: High to Low', value: 'priceDesc' }
 ]
 
-const totalPages = computed(() =>
-  Math.ceil(bestsellers.value.length / perPage)
-)
+const totalPages = computed(() => Math.ceil(bestsellers.value.length / perPage))
 
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * perPage
-  const end = start + perPage
-  return bestsellers.value.slice(start, end)
+  return bestsellers.value.slice(start, start + perPage)
 })
 
+// API Fetch Logic
 const fetchBestsellers = async () => {
   loading.value = true
   try {
-    const res = await fetch(
-      `https://api.streetstylestore.com/collections/products/documents/search?q=*&filter_by=categories:=893&sort_by=date_updated_unix:desc&per_page=50&page=1&x-typesense-api-key=Bm23NaocNyDb2qWiT9Mpn4qXdSmq7bqdoLzY6espTB3MC6Rx`
-    )
+const apiKey = config.public.typesenseProductsApiKey
+    const baseUrl = config.public.typesenseBaseUrl
+
+    console.log('📦 Typesense Base URL:', baseUrl)
+    console.log('🔑 Typesense API Key:', apiKey)
+
+    if (!apiKey || !baseUrl) {
+      console.error('❌ Missing API key or base URL')
+      return
+    }
+
+    const queryParams = new URLSearchParams({
+      q: '*',
+      filter_by: 'categories:=893',
+      sort_by: 'date_updated_unix:desc',
+      per_page: '100',
+      page: '1',
+      'x-typesense-api-key': apiKey
+    })
+
+    const url = `${baseUrl}/products/documents/search?${queryParams.toString()}`
+    console.log('🌐 Fetching Bestsellers from URL:', url)
+
+    const res = await fetch(url)
     const json = await res.json()
-    const data = json.hits.map((h: any) => {
+
+    if (!res.ok) {
+      console.error(`❌ HTTP ${res.status}: ${json.message || 'Unknown error'}`)
+      throw new Error(json.message || 'Failed to fetch bestsellers.')
+    }
+
+    console.log('✅ Response JSON:', json)
+
+    if (!json?.hits || !Array.isArray(json.hits)) {
+      console.warn('⚠️ Unexpected response structure:', json)
+      bestsellers.value = []
+      return
+    }
+
+    const data: Product[] = json.hits.map((h: any) => {
       const doc = h.document || h
       const raw = doc.product_data ? JSON.parse(doc.product_data) : null
-      const img =
-        raw?.images?.[0]?.bigImg?.replace(/\\/g, '/') || doc.img || '/placeholder.png'
+      const image = raw?.images?.[0]?.bigImg?.replace(/\\/g, '/') || doc.img || '/placeholder.png'
 
       return {
         id: doc.id,
         name: doc.name,
-        description:
-          doc.description_short || 'This is a delicious bestselling product!',
+        description: doc.description_short || 'This is a delicious bestselling product!',
         price: doc.selling_price || doc.real_selling_price || 0,
-        image: img,
-        product_data: doc.product_data,
+        image,
+        restaurantId: doc.restaurantId || 'main',
+        product_data: doc.product_data
       }
     })
 
-    // Apply sort logic
-    if (sortBy.value === 'priceAsc') {
-      data.sort((a, b) => a.price - b.price)
-    } else if (sortBy.value === 'priceDesc') {
-      data.sort((a, b) => b.price - a.price)
-    }
+    // Sort logic
+    if (sortBy.value === 'priceAsc') data.sort((a, b) => a.price - b.price)
+    else if (sortBy.value === 'priceDesc') data.sort((a, b) => b.price - a.price)
 
     bestsellers.value = data
-    currentPage.value = 1 // reset page on sort
+    currentPage.value = 1
+    console.log('🛒 Bestsellers loaded:', data)
   } catch (err) {
-    console.error('Error fetching bestsellers:', err)
+    console.error('❌ Error fetching bestsellers:', err)
+    bestsellers.value = []
   } finally {
     loading.value = false
   }
 }
 
-const addToCart = (product: any) => {
-  const item = {
+
+
+
+const addToCart = (product: Product) => {
+  const item: CartItem = {
     id: product.id,
     name: product.name,
     image: product.image,
     price: product.price,
     restaurantId: product.restaurantId || 'main',
+    quantity: 1
   }
 
   if (cartStore.canAddFromRestaurant(item.restaurantId)) {
@@ -213,13 +272,8 @@ const addToCart = (product: any) => {
   }
 }
 
-onMounted(() => {
-  fetchBestsellers()
-})
-
-watch(sortBy, () => {
-  fetchBestsellers()
-})
+onMounted(fetchBestsellers)
+watch(sortBy, fetchBestsellers)
 </script>
 
 <style scoped>
@@ -237,12 +291,10 @@ watch(sortBy, () => {
   left: -150px;
   height: 100%;
   width: 150px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0) 100%);
   animation: shimmer 1.3s infinite linear;
 }
 
@@ -256,6 +308,7 @@ watch(sortBy, () => {
 .slide-fade-leave-active {
   transition: all 0.3s ease;
 }
+
 .slide-fade-enter-from,
 .slide-fade-leave-to {
   opacity: 0;

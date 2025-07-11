@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
+    "target": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "node",
+    "lib": ["ESNext", "DOM"],
     "baseUrl": ".",
     "paths": {
-      "~/*": [
-        "./*"
-      ],
-      "@/*": [
-        "./*"
-      ]
+      "~/*": ["./*"],
+      "@/*": ["./*"],
+      "#app": ["./.nuxt/types/app"],         // ✅ For useRuntimeConfig, etc.
+      "#imports": ["./.nuxt/imports"]        // ✅ For composables like useRoute, useFetch, etc.
     },
     "types": [
       "@types/node",
@@ -33,6 +32,6 @@
     "nuxt.config.ts",
     "**/*.ts",
     "**/*.vue",
-    "shims-vue.d.ts" // Make sure this file is included here
+    "shims-vue.d.ts"
   ]
 }

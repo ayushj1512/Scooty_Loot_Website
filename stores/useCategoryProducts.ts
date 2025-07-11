@@ -1,82 +1,78 @@
-// stores/useCategoryProducts.ts
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia'
+import { useRuntimeConfig } from '#imports'
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  raw: any;
-}
-
-export const useCategoryProducts = defineStore("categoryProducts", {
+export const useCategoryProducts = defineStore('categoryProducts', {
   state: () => ({
-    _loading: false,
-    _products: [] as Product[],
-    _loadedCategoryId: null as string | null,
+    items: [] as any[],
+    loading: false,
+    error: null as string | null
   }),
 
-  getters: {
-    loading: (state) => state._loading,
-    products: (state) => state._products,
-    loadedCategoryId: (state) => state._loadedCategoryId,
-  },
-
   actions: {
-    setLoading(value: boolean) {
-      this._loading = value;
-    },
-    setProducts(products: Product[]) {
-      this._products = products;
-    },
-    setLoadedCategoryId(categoryId: string | null) {
-      this._loadedCategoryId = categoryId;
-    },
+    async fetchCategoryProducts() {
+      const config = useRuntimeConfig()
+      const baseUrl = config.public.typesenseBaseUrl
+      const apiKey = config.public.typesenseProductsApiKey
 
-    async fetchCategoryProducts(categoryId = "892") {
-      if (this._loadedCategoryId === categoryId && this._products.length > 0)
-        return;
+      this.loading = true
+      this.error = null
 
-      this.setLoading(true);
+      console.log('📦 Base URL:', baseUrl)
+      console.log('🔑 API Key:', apiKey)
+
+      if (!baseUrl || !apiKey) {
+        console.error('❌ Missing Typesense config')
+        this.error = 'Missing Typesense config'
+        this.loading = false
+        return
+      }
 
       try {
-        const res = await fetch(
-          `https://api.streetstylestore.com/collections/products/documents/search?q=*&filter_by=categories:=${categoryId}&sort_by=date_updated_unix:desc&per_page=100&page=1&x-typesense-api-key=Bm23NaocNyDb2qWiT9Mpn4qXdSmq7bqdoLzY6espTB3MC6Rx`
-        );
-        const json = await res.json();
+        const queryParams = new URLSearchParams({
+          q: '*',
+          filter_by: 'categories:=893',
+          sort_by: 'date_updated_unix:desc',
+          per_page: '50',
+          page: '1'
+        })
 
-        const transformedProducts = json.hits.map((h: any) => {
-          const doc = h.document || h;
-          const raw = doc.product_data ? JSON.parse(doc.product_data) : null;
-          const img =
-            raw?.images?.[0]?.bigImg?.replace(/\\/g, "/") ||
-            doc.img ||
-            "/placeholder.png";
+        const url = `${baseUrl}/products/documents/search?${queryParams.toString()}`
+        console.log('🌐 Fetching category products from:', url)
+
+        const response = await fetch(url, {
+          headers: {
+            'x-typesense-api-key': apiKey,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        const json = await response.json()
+
+        if (!response.ok) {
+          console.error(`❌ HTTP ${response.status}: ${json.message || 'Unknown error'}`)
+          throw new Error(json.message || 'Failed to fetch category products.')
+        }
+
+        const hits = json?.hits || []
+
+        this.items = hits.map((hit: any) => {
+          const doc = hit.document || hit
+          const raw = doc.product_data ? JSON.parse(doc.product_data) : null
+          const image = raw?.images?.[0]?.bigImg?.replace(/\\/g, '/') || doc.img || '/placeholder.png'
 
           return {
             id: doc.id,
             name: doc.name,
-            description:
-              doc.description_short ||
-              "This is a delicious bestselling product!",
             price: doc.selling_price || doc.real_selling_price || 0,
-            image: img,
-            raw,
-          };
-        });
-
-        this.setProducts(transformedProducts);
-        this.setLoadedCategoryId(categoryId);
-      } catch (error) {
-        console.error("❌ Error fetching category products:", error);
-        this.setProducts([]);
-        this.setLoadedCategoryId(null);
+            image
+          }
+        })
+      } catch (err) {
+        console.error('❌ Error fetching category products:', err)
+        this.error = 'Failed to load category products.'
       } finally {
-        this.setLoading(false);
+        this.loading = false
       }
-    },
-  },
-
-  persist: true,
-});
+    }
+  }
+})

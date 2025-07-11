@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-// @ts-ignore
-
+import { ref, onMounted } from 'vue'
+import { useRuntimeConfig } from '#imports'
 import { useCartStore } from '~/stores/cart'
 import ProductDialog from '~/components/ProductDialog.vue'
-import { useFetch } from 'nuxt/app'
 
-// ✅ Define Bestseller type
 interface Bestseller {
   id: string
   name: string
@@ -16,10 +13,11 @@ interface Bestseller {
   restaurantId?: string
 }
 
-// ✅ SSR fetch with correct type
-const { data: bestsellers, pending: loadingBS } = useFetch<Bestseller[]>('/api/bestsellers')
-
+const config = useRuntimeConfig()
 const cartStore = useCartStore()
+
+const bestsellers = ref<Bestseller[]>([])
+const loadingBS = ref(true)
 const selectedProduct = ref<Bestseller | null>(null)
 const showDialog = ref(false)
 const notificationMessage = ref('')
@@ -45,6 +43,7 @@ function addToCart(product: Bestseller) {
     image: product.image,
     price: product.price,
     restaurantId: product.restaurantId || 'main',
+    quantity: 1
   }
 
   if (cartStore.canAddFromRestaurant(item.restaurantId)) {
@@ -55,10 +54,78 @@ function addToCart(product: Bestseller) {
     alert('You can only add items from the same restaurant.')
   }
 }
+
+async function fetchBestsellers() {
+  loadingBS.value = true
+  try {
+    const queryParams = new URLSearchParams({
+      q: '*',
+      filter_by: 'categories:=893',
+      sort_by: 'date_updated_unix:desc',
+      per_page: '100',
+      page: '1'
+    })
+
+    const baseUrl = config.public.typesenseBaseUrl // ✅ ends with /collections
+    const endpoint = `/products/documents/search?${queryParams.toString()}`
+    const fullUrl = `${baseUrl}${endpoint}` // ✅ Corrected: no repeated path
+
+    const headers = {
+      'x-typesense-api-key': config.public.typesenseProductsApiKey,
+      'Content-Type': 'application/json'
+    }
+
+    console.log('📤 FETCHING:', fullUrl)
+    console.log('📤 HEADERS:', headers)
+
+    const res = await fetch(fullUrl, { headers })
+    console.log('📥 STATUS:', res.status, res.statusText)
+
+    let json: any = null
+    try {
+      json = await res.json()
+      console.log('✅ JSON RESPONSE:', json)
+    } catch (parseError) {
+      const raw = await res.text()
+      console.error('❌ Failed to parse JSON. Raw response:', raw)
+      throw new Error('Invalid JSON response')
+    }
+
+    if (!res.ok) {
+      throw new Error(`❌ HTTP ${res.status}: ${JSON.stringify(json)}`)
+    }
+
+    if (!json || !Array.isArray(json.hits)) {
+      throw new Error(`❌ Unexpected response structure: ${JSON.stringify(json, null, 2)}`)
+    }
+
+    bestsellers.value = json.hits.map((h: any) => {
+      const doc = h.document || h
+      const raw = doc.product_data ? JSON.parse(doc.product_data) : null
+      const img = raw?.images?.[0]?.bigImg?.replace(/\\/g, '/') || doc.img || '/placeholder.png'
+
+      return {
+        id: doc.id,
+        name: doc.name,
+        description: doc.description_short || 'This is a delicious bestselling product!',
+        price: doc.selling_price || doc.real_selling_price || 0,
+        image: img,
+        restaurantId: doc.restaurantId || 'main'
+      }
+    })
+  } catch (err) {
+    console.error('🧨 ERROR in fetchBestsellers():', err)
+    bestsellers.value = []
+  } finally {
+    loadingBS.value = false
+  }
+}
+
+
+onMounted(fetchBestsellers)
 </script>
 
 <template>
-  <!-- ✅ Notification -->
   <transition name="slide-fade">
     <div v-if="showNotification"
       class="fixed top-5 right-5 z-50 max-w-sm w-full bg-gradient-to-br from-green-50 to-white border-l-[6px] border-green-500 text-green-900 px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-md flex items-start gap-3 animate-fade-in-up"
@@ -75,10 +142,8 @@ function addToCart(product: Bestseller) {
     </div>
   </transition>
 
-  <!-- ✅ Product Dialog -->
   <ProductDialog v-if="selectedProduct" :product="selectedProduct" :show="showDialog" @close="showDialog = false" />
 
-  <!-- ✅ Horizontal Bestseller Section -->
   <section class="py-12 bg-gradient-to-b from-gray-50 to-white">
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex justify-between items-center mb-6">
@@ -88,7 +153,6 @@ function addToCart(product: Bestseller) {
         </NuxtLink>
       </div>
 
-      <!-- Loading shimmer -->
       <div v-if="loadingBS" class="flex space-x-4 overflow-x-auto no-scrollbar">
         <div v-for="i in 5" :key="i"
           class="min-w-[240px] bg-gray-100 shimmer-card h-64 rounded-xl shadow p-4 overflow-hidden relative">
@@ -98,7 +162,6 @@ function addToCart(product: Bestseller) {
         </div>
       </div>
 
-      <!-- Render bestsellers -->
       <div v-else-if="bestsellers?.length" class="flex space-x-4 overflow-x-auto no-scrollbar pb-2">
         <div v-for="dish in bestsellers.slice(0, 5)" :key="dish.id"
           class="min-w-[240px] group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-1 transition duration-300">
