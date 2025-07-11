@@ -9,7 +9,11 @@ export default defineNuxtConfig({
     enabled: true,
   },
 
-  css: ['~/assets/css/main.css'],
+  // ✅ CSS Files (Tailwind & Main)
+  css: [
+    '~/assets/css/tailwind.css',
+    '~/assets/css/main.css'
+  ],
 
   modules: [
     ['@pinia/nuxt', {
@@ -30,17 +34,13 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // ❌ Private server-only (if needed)
+    // 🔒 Server-only
     typesenseApiKey: process.env.TYPESENSE_API_KEY || '',
 
     public: {
-      // ✅ Public client/server
+      // 🌐 Public runtime values
       apiBase: process.env.API_BASE || 'http://localhost:3000/api',
-
-      // ✅ Shared base URL for all Typesense endpoints
       typesenseBaseUrl: process.env.TYPESENSE_BASE_URL || '',
-
-      // ✅ Separate API keys
       typesenseProductsApiKey: process.env.TYPESENSE_PRODUCTS_API_KEY || '',
       typesenseConfigApiKey: process.env.TYPESENSE_CONFIG_API_KEY || '',
     },
@@ -50,7 +50,7 @@ export default defineNuxtConfig({
     '~/plugins/motion.client.ts',
     '~/plugins/initSssConfig.ts',
     '~/plugins/piniaPersist.client.ts',
-    // '~/plugins/initCategoryProducts.ts', // Uncomment if needed
+    // '~/plugins/initCategoryProducts.ts',
   ],
 
   app: {
@@ -71,5 +71,12 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: 'node',
+  },
+
+  // ✅ Prevent HMR issues in production
+  vite: {
+    server: {
+      hmr: process.env.NODE_ENV === 'production' ? false : true,
+    },
   },
 })
